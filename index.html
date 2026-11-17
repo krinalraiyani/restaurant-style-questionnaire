@@ -225,6 +225,18 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
 
 /* ---------- Load-in motion ---------- */
 .rise { animation: rise .6s var(--ease) both; }
+main.page { overflow-x: clip; }
+.step-nav {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  border-top: 1px solid var(--line); padding-top: 24px;
+}
+.step-nav .btn.primary { min-width: 160px; }
+.step-nav .btn.quiet[data-invisible] { visibility: hidden; }
+.step-count { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.enter-forward { animation: stepInForward .5s var(--ease) both; }
+.enter-back { animation: stepInBack .5s var(--ease) both; }
+@keyframes stepInForward { from { opacity: .001; transform: translateX(48px); } to { opacity: 1; transform: none; } }
+@keyframes stepInBack { from { opacity: .001; transform: translateX(-48px); } to { opacity: 1; transform: none; } }
 @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
 @media (max-width: 640px) {
@@ -251,16 +263,16 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
 </div>
 
 <main class="page">
-  <header class="intro rise">
+  <header class="intro rise" id="intro">
     <span class="eyebrow">A few quick questions</span>
     <h1>Which style feels right for your business?</h1>
-    <p>Tap the picture you like more in each pair. Don't overthink it. There are no right or wrong answers, and you can change your mind any time.</p>
-    <span class="time">Takes about 5 minutes · Please answer every question</span>
+    <p>Tap the picture you like more. The next question opens by itself. There are no right or wrong answers, and you can go back any time.</p>
+    <span class="time">Takes about 5 minutes · One question at a time · Please answer every question</span>
   </header>
 
   <div id="style-sections" class="stack"></div>
 
-  <section class="section" aria-labelledby="yn-title">
+  <section class="section step" id="step-yn" hidden aria-labelledby="yn-title">
     <div class="section-head">
       <h2 id="yn-title"><span class="num">09</span>About your website</h2>
       <p>Answer Yes or No for each one.</p>
@@ -268,7 +280,7 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
     <div class="yn-list" id="yn-list"></div>
   </section>
 
-  <section class="section" aria-labelledby="tq-title">
+  <section class="section step" id="step-tq" hidden aria-labelledby="tq-title">
     <div class="section-head">
       <h2 id="tq-title"><span class="num">10</span>Tell us about your restaurant</h2>
       <p>Type your answers in each box. Short answers are fine.</p>
@@ -276,7 +288,7 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
     <div class="tq-list" id="tq-list"></div>
   </section>
 
-  <section class="summary" aria-labelledby="sum-title">
+  <section class="summary step" id="step-summary" hidden aria-labelledby="sum-title">
     <div class="summary-head">
       <h2 id="sum-title">Your picks</h2>
       <span id="sum-count">0 of 23 answered</span>
@@ -314,6 +326,12 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
       </div>
     </div>
   </section>
+
+  <nav class="step-nav" aria-label="Move between questions">
+    <button type="button" class="btn quiet" id="back-btn">← Back</button>
+    <span class="step-count" id="step-count"></span>
+    <button type="button" class="btn primary" id="next-btn">Next</button>
+  </nav>
 </main>
 
 <script src="questions.js"></script>
@@ -332,7 +350,7 @@ const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" strok
 function renderStyleSections() {
   const host = /** @type {HTMLElement} */ (document.getElementById("style-sections"));
   host.innerHTML = STYLE_QUESTIONS.map((q, i) => `
-    <section class="section" id="sec-${q.id}" data-required aria-labelledby="q-${q.id}">
+    <section class="section step" id="sec-${q.id}" hidden data-required aria-labelledby="q-${q.id}">
       <div class="section-head">
         <h2 id="q-${q.id}"><span class="num">${String(i + 1).padStart(2, "0")}</span>${q.title}</h2>
         <p>${q.hint}</p>
@@ -379,10 +397,12 @@ function answeredCount() {
 
 function renderProgress() {
   const n = answeredCount();
-  const label = `${n} of ${TOTAL_QUESTIONS} answered`;
-  /** @type {HTMLElement} */ (document.getElementById("progress-label")).textContent = label;
-  /** @type {HTMLElement} */ (document.getElementById("sum-count")).textContent = label;
-  /** @type {HTMLElement} */ (document.getElementById("progress-bar")).style.width = `${(n / TOTAL_QUESTIONS) * 100}%`;
+  const total = lastStep() + 1;
+  const stepLabel = `Step ${currentStep + 1} of ${total}`;
+  /** @type {HTMLElement} */ (document.getElementById("progress-label")).textContent = stepLabel;
+  /** @type {HTMLElement} */ (document.getElementById("step-count")).textContent = stepLabel;
+  /** @type {HTMLElement} */ (document.getElementById("sum-count")).textContent = `${n} of ${TOTAL_QUESTIONS} answered`;
+  /** @type {HTMLElement} */ (document.getElementById("progress-bar")).style.width = `${((currentStep + 1) / total) * 100}%`;
 }
 
 function renderPicks(/** @type {string | null} */ changedLabel) {
@@ -413,8 +433,38 @@ function syncInputs() {
 
 /** @typedef {{label: string, elementId: string}} MissingQuestion */
 
-/** True after the client first tries to submit with empty questions; from then on empty ones are outlined. */
-let showMissing = false;
+/** Steps where the client already tried to move on with empty questions; only these show red outlines. */
+/** @type {Set<number>} */
+const attemptedSteps = new Set();
+
+/** Index of the step on screen. Steps: one per picture question, then Yes/No, then text, then summary. */
+let currentStep = 0;
+
+/** Pending automatic move to the next step after a pick. */
+let advanceTimer = 0;
+
+const AUTO_ADVANCE_MS = 550;
+
+/** @returns {HTMLElement[]} every step, in order */
+function stepElements() {
+  return /** @type {HTMLElement[]} */ (Array.from(document.querySelectorAll(".step")));
+}
+
+function lastStep() {
+  return stepElements().length - 1;
+}
+
+/** Index of the step that contains an element. */
+function stepOf(/** @type {HTMLElement} */ el) {
+  const step = /** @type {HTMLElement | null} */ (el.closest(".step"));
+  if (!step) throw new Error(`Element #${el.id} is not inside a step`);
+  return stepElements().indexOf(step);
+}
+
+/** Empty questions on one step. */
+function missingInStep(/** @type {number} */ step) {
+  return missingQuestions().filter((m) => stepOf(/** @type {HTMLElement} */ (document.getElementById(m.elementId))) === step);
+}
 
 /** Every question without an answer, in page order. */
 function missingQuestions() {
@@ -428,8 +478,11 @@ function missingQuestions() {
 
 function renderMissing() {
   const missing = missingQuestions();
-  const ids = new Set(showMissing ? missing.map((m) => m.elementId) : []);
-  document.querySelectorAll("[data-required]").forEach((el) => el.classList.toggle("needs-answer", ids.has(el.id)));
+  const ids = new Set(missing.map((m) => m.elementId));
+  document.querySelectorAll("[data-required]").forEach((el) => {
+    const marked = ids.has(el.id) && attemptedSteps.has(stepOf(/** @type {HTMLElement} */ (el)));
+    el.classList.toggle("needs-answer", marked);
+  });
   const remaining = /** @type {HTMLElement} */ (document.getElementById("remaining"));
   remaining.textContent = missing.length === 0
     ? "All questions answered. You can submit now."
@@ -515,10 +568,11 @@ async function submitAnswers(/** @type {SubmitEvent} */ ev) {
   ev.preventDefault();
   const missing = missingQuestions();
   if (missing.length > 0) {
-    showMissing = true;
+    const step = stepOf(/** @type {HTMLElement} */ (document.getElementById(missing[0].elementId)));
+    attemptedSteps.add(step);
+    showStep(step, "back");
     renderMissing();
-    setStatus(`Please answer every question before you submit. ${missing.length} still ${missing.length === 1 ? "needs" : "need"} an answer and ${missing.length === 1 ? "is" : "are"} marked in red.`, "err");
-    scrollToQuestion(missing[0].elementId);
+    window.setTimeout(() => scrollToQuestion(missing[0].elementId), 300);
     return;
   }
   const problem = contactProblem();
@@ -541,6 +595,57 @@ async function submitAnswers(/** @type {SubmitEvent} */ ev) {
   }
 }
 
+function renderStepNav() {
+  const back = /** @type {HTMLElement} */ (document.getElementById("back-btn"));
+  const next = /** @type {HTMLElement} */ (document.getElementById("next-btn"));
+  back.toggleAttribute("data-invisible", currentStep === 0);
+  next.hidden = currentStep === lastStep();
+  next.textContent = currentStep === lastStep() - 1 ? "Review my answers" : "Next";
+}
+
+/** Shows one step and slides it in from the side the client is moving towards. */
+function showStep(/** @type {number} */ target, /** @type {"forward" | "back"} */ direction) {
+  window.clearTimeout(advanceTimer);
+  const steps = stepElements();
+  steps.forEach((el, i) => { el.hidden = i !== target; });
+  const shown = steps[target];
+  shown.classList.remove("enter-forward", "enter-back");
+  void shown.offsetWidth;
+  shown.classList.add(direction === "forward" ? "enter-forward" : "enter-back");
+  /** @type {HTMLElement} */ (document.getElementById("intro")).hidden = target !== 0;
+  currentStep = target;
+  renderStepNav();
+  renderProgress();
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+/** Moves on, or outlines what is still empty on this step. */
+function goNext() {
+  const missing = missingInStep(currentStep);
+  if (missing.length > 0) {
+    attemptedSteps.add(currentStep);
+    renderMissing();
+    scrollToQuestion(missing[0].elementId);
+    return;
+  }
+  if (currentStep < lastStep()) showStep(currentStep + 1, "forward");
+}
+
+function goBack() {
+  if (currentStep > 0) showStep(currentStep - 1, "back");
+}
+
+function scheduleAdvance() {
+  window.clearTimeout(advanceTimer);
+  advanceTimer = window.setTimeout(goNext, AUTO_ADVANCE_MS);
+}
+
+/** First step that still has an empty question; the summary when everything is answered. */
+function firstIncompleteStep() {
+  const missing = missingQuestions();
+  return missing.length > 0 ? stepOf(/** @type {HTMLElement} */ (document.getElementById(missing[0].elementId))) : lastStep();
+}
+
 function bindEvents() {
   document.addEventListener("click", (ev) => {
     const target = /** @type {HTMLElement} */ (ev.target);
@@ -549,6 +654,7 @@ function bindEvents() {
       const q = STYLE_QUESTIONS.find((s) => s.id === choice.dataset.q);
       state.picks[choice.dataset.q ?? ""] = choice.dataset.v ?? "";
       saveDraft(); renderAll(q ? q.title : null);
+      scheduleAdvance();
       return;
     }
     const yn = /** @type {HTMLElement | null} */ (target.closest("[data-yn]"));
@@ -556,6 +662,7 @@ function bindEvents() {
       const q = YES_NO_QUESTIONS.find((s) => s.id === yn.dataset.yn);
       state.yesno[yn.dataset.yn ?? ""] = yn.dataset.v ?? "";
       saveDraft(); renderAll(q ? q.label : null);
+      if (missingInStep(currentStep).length === 0) scheduleAdvance();
     }
   });
   document.addEventListener("input", (ev) => {
@@ -566,6 +673,8 @@ function bindEvents() {
   });
   /** @type {HTMLElement} */ (document.getElementById("send-form")).addEventListener("submit", submitAnswers);
   /** @type {HTMLElement} */ (document.getElementById("reset-btn")).addEventListener("click", showResetConfirm);
+  /** @type {HTMLElement} */ (document.getElementById("next-btn")).addEventListener("click", goNext);
+  /** @type {HTMLElement} */ (document.getElementById("back-btn")).addEventListener("click", goBack);
 }
 
 function showResetConfirm() {
@@ -585,9 +694,10 @@ function restoreResetButton() {
 
 function resetAnswers() {
   state.picks = {}; state.yesno = {}; state.text = {}; state.name = ""; state.email = "";
+  attemptedSteps.clear();
   saveDraft(); syncInputs(); renderAll(null); restoreResetButton();
-  setStatus("All answers cleared.", "");
-  window.scrollTo({ top: 0, behavior: "smooth" });
+  setStatus("", "");
+  showStep(0, "back");
 }
 
 renderStyleSections();
@@ -597,6 +707,7 @@ loadDraft();
 syncInputs();
 renderAll(null);
 bindEvents();
+showStep(firstIncompleteStep(), "forward");
 </script>
 </body>
 </html>
