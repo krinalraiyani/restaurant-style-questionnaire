@@ -215,6 +215,13 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
 .status { font-size: 13px; min-height: 20px; margin: 0; }
 .status.ok { color: #2f7a4f; }
 .status.err { color: var(--accent); }
+.missing-note { display: none; margin: 0; font-size: 13px; font-weight: 600; color: var(--accent); }
+.needs-answer .missing-note { display: block; }
+.yn.needs-answer, .tq.needs-answer { border-color: var(--accent); box-shadow: 0 0 0 1px var(--accent); }
+.section.needs-answer .choice { border-color: var(--accent); }
+.yn-q { display: grid; gap: 4px; min-width: 0; }
+.remaining { margin: 0; font-size: 13px; font-weight: 600; color: var(--accent); }
+.remaining.done { color: #2f7a4f; }
 
 /* ---------- Load-in motion ---------- */
 .rise { animation: rise .6s var(--ease) both; }
@@ -248,7 +255,7 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
     <span class="eyebrow">A few quick questions</span>
     <h1>Which style feels right for your business?</h1>
     <p>Tap the picture you like more in each pair. Don't overthink it. There are no right or wrong answers, and you can change your mind any time.</p>
-    <span class="time">Takes about 5 minutes</span>
+    <span class="time">Takes about 5 minutes · Please answer every question</span>
   </header>
 
   <div id="style-sections" class="stack"></div>
@@ -277,7 +284,8 @@ input[type="email"]:focus { border-color: var(--ink); outline: none; }
     <dl class="picks" id="picks"></dl>
     <form class="send" id="send-form" novalidate>
       <h3>All done? Send your answers to us</h3>
-      <p>Add your name and email, then press Submit. Your answers come straight to us.</p>
+      <p>Answer every question above, add your name and email, then press Submit. Your answers come straight to us.</p>
+      <p class="remaining" id="remaining" aria-live="polite"></p>
       <div class="contact-fields">
         <div class="name-field">
           <label for="client-name">Your name</label>
@@ -324,10 +332,11 @@ const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" strok
 function renderStyleSections() {
   const host = /** @type {HTMLElement} */ (document.getElementById("style-sections"));
   host.innerHTML = STYLE_QUESTIONS.map((q, i) => `
-    <section class="section" aria-labelledby="q-${q.id}">
+    <section class="section" id="sec-${q.id}" data-required aria-labelledby="q-${q.id}">
       <div class="section-head">
         <h2 id="q-${q.id}"><span class="num">${String(i + 1).padStart(2, "0")}</span>${q.title}</h2>
         <p>${q.hint}</p>
+        <p class="missing-note">Please pick one picture.</p>
       </div>
       <div class="pair${q.options.length > 2 ? " six" : ""}" role="group" aria-labelledby="q-${q.id}">
         ${q.options.map((o) => `
@@ -345,8 +354,8 @@ function renderStyleSections() {
 function renderYesNo() {
   const host = /** @type {HTMLElement} */ (document.getElementById("yn-list"));
   host.innerHTML = YES_NO_QUESTIONS.map((q) => `
-    <div class="yn">
-      <p id="yn-${q.id}">${q.text}</p>
+    <div class="yn" id="yn-row-${q.id}" data-required>
+      <div class="yn-q"><p id="yn-${q.id}">${q.text}</p><p class="missing-note">Please choose Yes or No.</p></div>
       <div class="seg" role="group" aria-labelledby="yn-${q.id}">
         <button type="button" data-yn="${q.id}" data-v="Yes" aria-pressed="false">Yes</button>
         <button type="button" data-yn="${q.id}" data-v="No" aria-pressed="false">No</button>
@@ -357,9 +366,10 @@ function renderYesNo() {
 function renderTextQuestions() {
   const host = /** @type {HTMLElement} */ (document.getElementById("tq-list"));
   host.innerHTML = TEXT_QUESTIONS.map((q) => `
-    <div class="tq">
+    <div class="tq" id="tq-row-${q.id}" data-required>
       <label for="tq-${q.id}">${q.text}</label>
-      <textarea id="tq-${q.id}" data-tq="${q.id}" placeholder="Type here…"></textarea>
+      <textarea id="tq-${q.id}" data-tq="${q.id}" placeholder="Type here…" required></textarea>
+      <p class="missing-note">Please type an answer.</p>
     </div>`).join("");
 }
 
@@ -401,10 +411,44 @@ function syncInputs() {
   /** @type {HTMLInputElement} */ (document.getElementById("client-email")).value = state.email;
 }
 
+/** @typedef {{label: string, elementId: string}} MissingQuestion */
+
+/** True after the client first tries to submit with empty questions; from then on empty ones are outlined. */
+let showMissing = false;
+
+/** Every question without an answer, in page order. */
+function missingQuestions() {
+  /** @type {MissingQuestion[]} */
+  const missing = [];
+  STYLE_QUESTIONS.forEach((q) => { if (!state.picks[q.id]) missing.push({ label: q.title, elementId: `sec-${q.id}` }); });
+  YES_NO_QUESTIONS.forEach((q) => { if (!state.yesno[q.id]) missing.push({ label: q.label, elementId: `yn-row-${q.id}` }); });
+  TEXT_QUESTIONS.forEach((q) => { if (!(state.text[q.id] ?? "").trim()) missing.push({ label: q.label, elementId: `tq-row-${q.id}` }); });
+  return missing;
+}
+
+function renderMissing() {
+  const missing = missingQuestions();
+  const ids = new Set(showMissing ? missing.map((m) => m.elementId) : []);
+  document.querySelectorAll("[data-required]").forEach((el) => el.classList.toggle("needs-answer", ids.has(el.id)));
+  const remaining = /** @type {HTMLElement} */ (document.getElementById("remaining"));
+  remaining.textContent = missing.length === 0
+    ? "All questions answered. You can submit now."
+    : `${missing.length} ${missing.length === 1 ? "question" : "questions"} left to answer.`;
+  remaining.classList.toggle("done", missing.length === 0);
+}
+
+function scrollToQuestion(/** @type {string} */ elementId) {
+  const target = /** @type {HTMLElement} */ (document.getElementById(elementId));
+  target.scrollIntoView({ behavior: "smooth", block: "center" });
+  const field = target.querySelector("textarea");
+  if (field) field.focus({ preventScroll: true });
+}
+
 function renderAll(/** @type {string | null} */ changedLabel) {
   syncPressed();
   renderPicks(changedLabel);
   renderProgress();
+  renderMissing();
 }
 
 /** Browser draft so a client can come back later; storage may be blocked, which only loses the draft. */
@@ -469,6 +513,14 @@ function showThanks() {
 
 async function submitAnswers(/** @type {SubmitEvent} */ ev) {
   ev.preventDefault();
+  const missing = missingQuestions();
+  if (missing.length > 0) {
+    showMissing = true;
+    renderMissing();
+    setStatus(`Please answer every question before you submit. ${missing.length} still ${missing.length === 1 ? "needs" : "need"} an answer and ${missing.length === 1 ? "is" : "are"} marked in red.`, "err");
+    scrollToQuestion(missing[0].elementId);
+    return;
+  }
   const problem = contactProblem();
   if (problem) { setStatus(problem, "err"); focusFirstInvalidContact(); return; }
   const btn = /** @type {HTMLButtonElement} */ (document.getElementById("submit-btn"));
@@ -508,7 +560,7 @@ function bindEvents() {
   });
   document.addEventListener("input", (ev) => {
     const t = /** @type {HTMLTextAreaElement} */ (ev.target);
-    if (t.dataset.tq) { state.text[t.dataset.tq] = t.value; saveDraft(); renderProgress(); }
+    if (t.dataset.tq) { state.text[t.dataset.tq] = t.value; saveDraft(); renderProgress(); renderMissing(); }
     if (t.id === "client-name") { state.name = t.value; saveDraft(); }
     if (t.id === "client-email") { state.email = t.value; saveDraft(); }
   });
