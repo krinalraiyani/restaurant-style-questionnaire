@@ -9,42 +9,10 @@
 
 /** @type {StyleQuestion[]} */
 const STYLE_QUESTIONS = [
-  { id: "corner", title: "Corner shape", hint: "Should the boxes have round corners or square corners?",
-    options: [
-      { value: "Round corners", note: "Soft and friendly", image: "images/Q2-1-Round-corners.jpg", width: 1600, height: 1217 },
-      { value: "Square corners", note: "Sharp and neat", image: "images/Q2-2-Square-corners.jpg", width: 1600, height: 1217 } ] },
-  { id: "surface", title: "Flat or shadow look", hint: "Plain flat boxes, or boxes that lift off the page with a shadow?",
-    options: [
-      { value: "Flat look", note: "Clean and even", image: "images/Q3-1-Flat-look.jpg", width: 1600, height: 1217 },
-      { value: "Shadow look", note: "Boxes with depth", image: "images/Q3-2-Shadow-look.jpg", width: 1600, height: 619 } ] },
-  { id: "space", title: "Empty space", hint: "Lots of room around things, or more information on each screen?",
-    options: [
-      { value: "Lots of empty space", note: "Calm and roomy", image: "images/Q4-1-Lots-of-empty-space.jpg", width: 1600, height: 1217 },
-      { value: "Lots of information", note: "More to see at once", image: "images/Q4-2-Lots-of-information.jpg", width: 1600, height: 1217 } ] },
-  { id: "colors", title: "Colors", hint: "Just one or two colors, or many bright colors?",
-    options: [
-      { value: "Few colors", note: "Simple and calm", image: "images/Q5-1-Few-colors.jpg", width: 1600, height: 1217 },
-      { value: "Many colors", note: "Bright and playful", image: "images/Q5-2-Many-colors.jpg", width: 1600, height: 1217 } ] },
-  { id: "letters", title: "Letter style", hint: "Look at the letters. Which style do you like?",
-    options: [
-      { value: "Letters with small tails", note: "Classic, like a menu card", image: "images/Q6-1-Letters-with-small-tails.jpg", width: 1188, height: 462 },
-      { value: "Letters with no tails", note: "Modern and simple", image: "images/Q6-2-Letters-with-no-tails.jpg", width: 1188, height: 462 } ] },
-  { id: "combo", title: "Letter combinations", hint: "Which title and text pair feels most like your restaurant?",
-    options: [
-      { value: "Classic and graceful", note: "Elegant and timeless", image: "images/Q7-1-Classic-and-graceful.jpg", width: 776, height: 462 },
-      { value: "Modern and friendly", note: "Warm and easy to read", image: "images/Q7-2-Modern-and-friendly.jpg", width: 776, height: 462 },
-      { value: "Bold and strong", note: "Big and confident", image: "images/Q7-3-Bold-and-strong.jpg", width: 776, height: 462 },
-      { value: "Clean and simple", note: "Nothing extra", image: "images/Q7-4-Clean-and-simple.jpg", width: 776, height: 462 },
-      { value: "Fun and playful", note: "Light and cheerful", image: "images/Q7-5-Fun-and-playful.jpg", width: 776, height: 462 },
-      { value: "Handwritten and personal", note: "Like a note from you", image: "images/Q7-6-Handwritten-and-personal.jpg", width: 776, height: 462 } ] },
   { id: "page", title: "Sample web page", hint: "Which page feels more like your restaurant?",
     options: [
       { value: "Simple and clean", note: "Only what matters", image: "images/Q8-1-Simple-and-clean.jpg", width: 1600, height: 1217 },
       { value: "Busy and detailed", note: "Lively, lots going on", image: "images/Q8-2-Busy-and-detailed.jpg", width: 1600, height: 1217 } ] },
-  { id: "blend", title: "How colors look", hint: "Solid colors, or colors that mix into each other?",
-    options: [
-      { value: "Plain colors", note: "One solid color", image: "images/Q9-1-Plain-colors.jpg", width: 1600, height: 1217 },
-      { value: "Mixed colors", note: "Colors blend together", image: "images/Q9-2-Mixed-colors.jpg", width: 1600, height: 1217 } ] },
 ];
 
 /** @type {TextQuestion[]} */

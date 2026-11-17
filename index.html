@@ -267,14 +267,14 @@ main.page { overflow-x: clip; }
     <span class="eyebrow">A few quick questions</span>
     <h1>Which style feels right for your business?</h1>
     <p>Tap the picture you like more. The next question opens by itself. There are no right or wrong answers, and you can go back any time.</p>
-    <span class="time">Takes about 5 minutes · One question at a time · Please answer every question</span>
+    <span class="time">Takes about 3 minutes · One question at a time · Please answer every question</span>
   </header>
 
   <div id="style-sections" class="stack"></div>
 
   <section class="section step" id="step-yn" hidden aria-labelledby="yn-title">
     <div class="section-head">
-      <h2 id="yn-title"><span class="num">09</span>About your website</h2>
+      <h2 id="yn-title"><span class="num" id="yn-num"></span>About your website</h2>
       <p>Answer Yes or No for each one.</p>
     </div>
     <div class="yn-list" id="yn-list"></div>
@@ -282,7 +282,7 @@ main.page { overflow-x: clip; }
 
   <section class="section step" id="step-tq" hidden aria-labelledby="tq-title">
     <div class="section-head">
-      <h2 id="tq-title"><span class="num">10</span>Tell us about your restaurant</h2>
+      <h2 id="tq-title"><span class="num" id="tq-num"></span>Tell us about your restaurant</h2>
       <p>Type your answers in each box. Short answers are fine.</p>
     </div>
     <div class="tq-list" id="tq-list"></div>
@@ -367,6 +367,13 @@ function renderStyleSections() {
           </button>`).join("")}
       </div>
     </section>`).join("");
+}
+
+/** Numbers the Yes/No and text sections right after the picture questions. */
+function renderSectionNumbers() {
+  const pad = (/** @type {number} */ n) => String(n).padStart(2, "0");
+  /** @type {HTMLElement} */ (document.getElementById("yn-num")).textContent = pad(STYLE_QUESTIONS.length + 1);
+  /** @type {HTMLElement} */ (document.getElementById("tq-num")).textContent = pad(STYLE_QUESTIONS.length + 2);
 }
 
 function renderYesNo() {
@@ -701,6 +708,7 @@ function resetAnswers() {
 }
 
 renderStyleSections();
+renderSectionNumbers();
 renderYesNo();
 renderTextQuestions();
 loadDraft();
