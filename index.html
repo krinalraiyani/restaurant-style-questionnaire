@@ -52,7 +52,7 @@ button, input, textarea { font: inherit; color: inherit; }
   background: var(--bg); border-bottom: 1px solid var(--line);
 }
 .topbar-inner {
-  max-width: 912px; margin: 0 auto;
+  max-width: 1152px; margin: 0 auto;
   padding-block: 12px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -68,7 +68,7 @@ button, input, textarea { font: inherit; color: inherit; }
 
 /* ---------- Page column ---------- */
 .page {
-  max-width: 912px; margin: 0 auto;
+  max-width: 1152px; margin: 0 auto;
   padding-block: 48px 96px;
   padding-left: max(16px, env(safe-area-inset-left, 0px));
   padding-right: max(16px, env(safe-area-inset-right, 0px));
@@ -98,7 +98,7 @@ h1 {
 .section-head p { margin: 0; color: var(--muted); font-size: 16px; }
 
 /* ---------- Picture choice pair ---------- */
-.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.pair { display: grid; grid-template-columns: 1fr; gap: 24px; }
 .choice {
   display: grid; grid-template-rows: 1fr auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
@@ -126,7 +126,7 @@ h1 {
 /* ---------- Option pictures ---------- */
 .choice-art { padding: 0; place-items: center; }
 .choice-art img { display: block; width: 100%; height: auto; max-width: 100%; }
-.pair.six { grid-template-columns: repeat(3, 1fr); }
+.pair.six { grid-template-columns: repeat(2, 1fr); }
 
 /* ---------- Yes / No ---------- */
 .yn-list { display: grid; gap: 8px; }
@@ -202,9 +202,6 @@ textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: no
 .rise { animation: rise .6s var(--ease) both; }
 @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
-@media (max-width: 860px) {
-  .pair.six { grid-template-columns: repeat(2, 1fr); }
-}
 @media (max-width: 640px) {
   .pair, .pair.six { grid-template-columns: 1fr; }
   .yn { flex-direction: column; align-items: stretch; }
