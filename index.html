@@ -107,7 +107,7 @@ h1 {
 }
 .choice:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -16px rgba(28, 27, 26, .35); }
 .choice[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
-.choice-art { padding: 16px; background: var(--line); display: grid; }
+.choice-art { background: var(--line); display: grid; }
 .choice-foot {
   display: flex; align-items: center; justify-content: space-between; gap: 12px;
   padding: 12px 16px; min-height: 64px;
@@ -123,118 +123,10 @@ h1 {
 .choice[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); }
 .choice[aria-pressed="true"] .tick svg { opacity: 1; transform: scale(1); }
 
-/* ---------- Mock restaurant UI (the "pictures") ----------
-   Fixed illustration palette, independent of the page theme, like a photo would be. */
-.mock {
-  --r: 12px; --pad: 16px; --gap: 12px;
-  --m-paper: #ffffff; --m-ink: #1f1d1b; --m-soft: #f2efe9; --m-line: #ddd7ce;
-  --m-acc: #c2452d; --m-acc-ink: #ffffff;
-  --p-hero: var(--m-paper); --p-menu: var(--m-paper); --p-book: var(--m-paper); --p-dish: var(--m-paper);
-  --t-hero: var(--m-ink); --t-menu: var(--m-ink); --t-book: var(--m-ink); --t-dish: var(--m-ink);
-  --ph-bg: #e9c9a8; --ph-food: #c2452d; --btn-bg: var(--m-ink); --btn-ink: #ffffff;
-  --h-font: var(--font-body); --h-weight: 600; --h-style: normal; --h-case: none; --h-size: 18px; --h-track: -.01em;
-  display: grid; gap: var(--gap);
-  grid-template-columns: 1.15fr 1fr;
-  grid-template-areas: "band band" "hero menu" "hero book" "dish dish";
-  font-family: var(--font-body); color: var(--m-ink); font-size: 12px; line-height: 1.3;
-}
-.mp {
-  border-radius: var(--r); padding: var(--pad); border: 1px solid var(--m-line);
-  display: grid; gap: 8px; align-content: start; min-width: 0; position: relative; overflow: hidden;
-}
-.mp.hero { grid-area: hero; background: var(--p-hero); color: var(--t-hero); padding: 0; gap: 0; }
-.mp.menu { grid-area: menu; background: var(--p-menu); color: var(--t-menu); }
-.mp.book { grid-area: book; background: var(--p-book); color: var(--t-book); }
-.mp.dishes { grid-area: dish; background: var(--p-dish); color: var(--t-dish); grid-template-columns: repeat(3, 1fr); }
-.hero-body { padding: var(--pad); display: grid; gap: 8px; }
-.m-h {
-  font-family: var(--h-font); font-weight: var(--h-weight); font-style: var(--h-style);
-  text-transform: var(--h-case); font-size: var(--h-size); letter-spacing: var(--h-track); line-height: 1.1;
-}
-.m-h2 { font-family: var(--h-font); font-weight: var(--h-weight); font-style: var(--h-style); text-transform: var(--h-case); font-size: 13px; letter-spacing: var(--h-track); }
-.ln { display: block; height: 6px; border-radius: 4px; background: currentColor; opacity: .18; }
-.ln.s { width: 60%; }
-.row { display: flex; align-items: center; gap: 8px; }
-.row .ln { flex: 1; }
-.price { font-weight: 600; font-variant-numeric: tabular-nums; }
-.ph {
-  aspect-ratio: 4 / 3; max-width: 100%; background: var(--ph-bg); position: relative; overflow: hidden;
-}
-.ph::before {
-  content: ""; position: absolute; width: 58%; aspect-ratio: 1; left: 21%; top: 12%;
-  border-radius: 50%; background: #fbf8f3; box-shadow: 0 6px 0 -2px rgba(0, 0, 0, .08);
-}
-.ph::after {
-  content: ""; position: absolute; width: 30%; aspect-ratio: 1; left: 35%; top: 30%;
-  border-radius: 50%; background: var(--ph-food);
-}
-.dish { display: grid; gap: 4px; min-width: 0; }
-.dish .ph { border-radius: calc(var(--r) * .66); }
-.chips { display: flex; gap: 4px; flex-wrap: wrap; }
-.chips span {
-  padding: 4px 8px; border-radius: calc(var(--r) * .66); border: 1px solid currentColor;
-  opacity: .7; font-variant-numeric: tabular-nums;
-}
-.chips span.on { background: var(--btn-bg); color: var(--btn-ink); border-color: transparent; opacity: 1; }
-.m-btn {
-  justify-self: start; padding: 8px 12px; border-radius: calc(var(--r) * .66);
-  background: var(--btn-bg); color: var(--btn-ink); font-weight: 600;
-}
-.m-band {
-  grid-area: band; display: none; padding: 4px 12px; border-radius: var(--r);
-  background: var(--m-ink); color: #ffffff; font-weight: 600; white-space: nowrap; overflow: hidden;
-}
-.m-tag {
-  display: none; justify-self: start; padding: 2px 8px; border-radius: 99px;
-  background: #ffd84d; color: #1f1d1b; font-weight: 700; font-size: 12px;
-}
-.sticker {
-  display: none; position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border-radius: 50%;
-  background: #ffd84d; color: #1f1d1b; font-weight: 700; place-items: center; transform: rotate(-12deg); font-size: 12px;
-}
-.x-dense { display: none; }
-
-/* Corner shape */
-.mock[data-radius="square"] { --r: 0px; }
-/* Flat vs filled */
-.mock[data-surface="filled"] {
-  --p-hero: #f3d9c7; --p-menu: #efe4d6; --p-book: #1f1d1b; --t-book: #ffffff; --p-dish: #f3d9c7;
-  --btn-bg: var(--m-acc);
-}
-.mock[data-surface="filled"] .mp { border-color: transparent; box-shadow: 0 8px 16px -12px rgba(0, 0, 0, .45); }
-.mock[data-surface="filled"] .mp.menu {
-  background-image: radial-gradient(rgba(194, 69, 45, .18) 1.5px, transparent 1.6px); background-size: 12px 12px;
-}
-.mock[data-surface="filled"] .ph { background: #8f3a24; }
-/* Empty space */
-.mock[data-density="packed"] { --pad: 8px; --gap: 4px; --h-size: 16px; }
-.mock[data-density="packed"] .x-dense { display: revert; }
-.mock[data-density="packed"] .chips.x-dense { display: flex; }
-.mock[data-density="packed"] .mp { gap: 4px; }
-/* Colors */
-.mock[data-palette="many"] {
-  --p-hero: #ffd84d; --p-menu: #2f6f4f; --t-menu: #ffffff; --p-book: #ff7a59; --t-book: #1f1d1b;
-  --p-dish: #6c5ce7; --t-dish: #ffffff; --ph-bg: #4cc3d9; --ph-food: #ff7a59; --btn-bg: #6c5ce7;
-}
-.mock[data-palette="many"] .mp { border-color: transparent; }
-.mock[data-palette="many"] .mp.book .chips span.on { background: #1f1d1b; }
-/* Letter style */
-.mock[data-font="serif"] { --h-font: var(--font-display); --h-weight: 400; --h-size: 22px; --h-track: 0; }
-/* Letter combinations */
-.mock[data-weight="bold"] { --h-weight: 700; --h-case: uppercase; --h-size: 18px; --h-track: -.02em; }
-.mock[data-weight="light"] { --h-font: var(--font-display); --h-weight: 400; --h-style: italic; --h-size: 22px; --h-track: 0; }
-/* Sample page */
-.mock[data-busy="busy"] .m-band { display: block; }
-.mock[data-busy="busy"] .m-tag { display: inline-block; }
-.mock[data-busy="busy"] .sticker { display: grid; }
-.mock[data-busy="busy"] { --p-menu: #fff4d6; --p-dish: #ffe9e2; }
-/* How colors look */
-.mock[data-blend="blend"] {
-  --btn-bg: linear-gradient(120deg, #c2452d, #e88a3a 55%, #b8478e);
-}
-.mock[data-blend="blend"] .ph { background: linear-gradient(140deg, #f6b26b, #e2604a 50%, #8e4fb8); }
-.mock[data-blend="blend"] .mp.book { background: linear-gradient(160deg, #fff1e6, #f7dcef); }
-.mock[data-blend="blend"] .m-btn, .mock[data-blend="blend"] .chips span.on { background: var(--btn-bg); }
+/* ---------- Option pictures ---------- */
+.choice-art { padding: 0; place-items: center; }
+.choice-art img { display: block; width: 100%; height: auto; max-width: 100%; }
+.pair.six { grid-template-columns: repeat(3, 1fr); }
 
 /* ---------- Yes / No ---------- */
 .yn-list { display: grid; gap: 8px; }
@@ -310,8 +202,11 @@ textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: no
 .rise { animation: rise .6s var(--ease) both; }
 @keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
 
+@media (max-width: 860px) {
+  .pair.six { grid-template-columns: repeat(2, 1fr); }
+}
 @media (max-width: 640px) {
-  .pair { grid-template-columns: 1fr; }
+  .pair, .pair.six { grid-template-columns: 1fr; }
   .yn { flex-direction: column; align-items: stretch; }
   .seg button { flex: 1; }
   .summary { padding: 20px 16px; }
@@ -386,9 +281,7 @@ textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: no
 
 <script>
 /**
- * @typedef {{radius?: string, surface?: string, density?: string, palette?: string,
- *            font?: string, weight?: string, busy?: string, blend?: string}} MockStyle
- * @typedef {{value: string, note: string, style: MockStyle}} StyleOption
+ * @typedef {{value: string, note: string, image: string, width: number, height: number}} StyleOption
  * @typedef {{id: string, title: string, hint: string, options: StyleOption[]}} StyleQuestion
  * @typedef {{id: string, label: string, text: string}} TextQuestion
  * @typedef {{picks: Record<string, string>, yesno: Record<string, string>, text: Record<string, string>, name: string}} Answers
@@ -398,36 +291,40 @@ textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: no
 const STYLE_QUESTIONS = [
   { id: "corner", title: "Corner shape", hint: "Should the boxes have round corners or square corners?",
     options: [
-      { value: "Rounded corners", note: "Soft and friendly", style: { radius: "round" } },
-      { value: "Square corners", note: "Sharp and neat", style: { radius: "square" } } ] },
-  { id: "surface", title: "Flat or filled look", hint: "Plain white boxes, or boxes filled with color and texture?",
+      { value: "Round corners", note: "Soft and friendly", image: "images/Q2-1-Round-corners.jpg", width: 1600, height: 1217 },
+      { value: "Square corners", note: "Sharp and neat", image: "images/Q2-2-Square-corners.jpg", width: 1600, height: 1217 } ] },
+  { id: "surface", title: "Flat or shadow look", hint: "Plain flat boxes, or boxes that lift off the page with a shadow?",
     options: [
-      { value: "Flat look", note: "Clean white boxes", style: { surface: "flat" } },
-      { value: "Filled look", note: "Color and texture", style: { surface: "filled" } } ] },
-  { id: "space", title: "Empty space", hint: "Lots of room around things, or more on each screen?",
+      { value: "Flat look", note: "Clean and even", image: "images/Q3-1-Flat-look.jpg", width: 1600, height: 1217 },
+      { value: "Shadow look", note: "Boxes with depth", image: "images/Q3-2-Shadow-look.jpg", width: 1600, height: 619 } ] },
+  { id: "space", title: "Empty space", hint: "Lots of room around things, or more information on each screen?",
     options: [
-      { value: "Lots of empty space", note: "Calm and roomy", style: { density: "airy" } },
-      { value: "Packed with content", note: "More to see at once", style: { density: "packed" } } ] },
+      { value: "Lots of empty space", note: "Calm and roomy", image: "images/Q4-1-Lots-of-empty-space.jpg", width: 1600, height: 1217 },
+      { value: "Lots of information", note: "More to see at once", image: "images/Q4-2-Lots-of-information.jpg", width: 1600, height: 1217 } ] },
   { id: "colors", title: "Colors", hint: "Just one or two colors, or many bright colors?",
     options: [
-      { value: "Few colors", note: "Black, white and one color", style: { palette: "few" } },
-      { value: "Many colors", note: "Bright and playful", style: { palette: "many" } } ] },
-  { id: "letters", title: "Letter style", hint: "Look at the big titles. Which letters do you like?",
+      { value: "Few colors", note: "Simple and calm", image: "images/Q5-1-Few-colors.jpg", width: 1600, height: 1217 },
+      { value: "Many colors", note: "Bright and playful", image: "images/Q5-2-Many-colors.jpg", width: 1600, height: 1217 } ] },
+  { id: "letters", title: "Letter style", hint: "Look at the letters. Which style do you like?",
     options: [
-      { value: "Letters with no tails", note: "Modern and simple", style: { font: "sans" } },
-      { value: "Letters with tails", note: "Classic, like a menu card", style: { font: "serif" } } ] },
-  { id: "combo", title: "Letter combinations", hint: "Strong, heavy titles or light, elegant ones?",
+      { value: "Letters with small tails", note: "Classic, like a menu card", image: "images/Q6-1-Letters-with-small-tails.jpg", width: 1188, height: 462 },
+      { value: "Letters with no tails", note: "Modern and simple", image: "images/Q6-2-Letters-with-no-tails.jpg", width: 1188, height: 462 } ] },
+  { id: "combo", title: "Letter combinations", hint: "Which title and text pair feels most like your restaurant?",
     options: [
-      { value: "Bold and strong", note: "Big and confident", style: { weight: "bold" } },
-      { value: "Light and elegant", note: "Fine and graceful", style: { weight: "light" } } ] },
+      { value: "Classic and graceful", note: "Elegant and timeless", image: "images/Q7-1-Classic-and-graceful.jpg", width: 776, height: 462 },
+      { value: "Modern and friendly", note: "Warm and easy to read", image: "images/Q7-2-Modern-and-friendly.jpg", width: 776, height: 462 },
+      { value: "Bold and strong", note: "Big and confident", image: "images/Q7-3-Bold-and-strong.jpg", width: 776, height: 462 },
+      { value: "Clean and simple", note: "Nothing extra", image: "images/Q7-4-Clean-and-simple.jpg", width: 776, height: 462 },
+      { value: "Fun and playful", note: "Light and cheerful", image: "images/Q7-5-Fun-and-playful.jpg", width: 776, height: 462 },
+      { value: "Handwritten and personal", note: "Like a note from you", image: "images/Q7-6-Handwritten-and-personal.jpg", width: 776, height: 462 } ] },
   { id: "page", title: "Sample web page", hint: "Which page feels more like your restaurant?",
     options: [
-      { value: "Simple and clean", note: "Only what matters", style: { busy: "simple" } },
-      { value: "Bold and busy", note: "Lively, lots going on", style: { busy: "busy" } } ] },
-  { id: "blend", title: "How colors look", hint: "Solid colors, or colors that blend into each other?",
+      { value: "Simple and clean", note: "Only what matters", image: "images/Q8-1-Simple-and-clean.jpg", width: 1600, height: 1217 },
+      { value: "Busy and detailed", note: "Lively, lots going on", image: "images/Q8-2-Busy-and-detailed.jpg", width: 1600, height: 1217 } ] },
+  { id: "blend", title: "How colors look", hint: "Solid colors, or colors that mix into each other?",
     options: [
-      { value: "Plain colors", note: "One solid color", style: { blend: "plain" } },
-      { value: "Color blends", note: "Colors mix together", style: { blend: "blend" } } ] },
+      { value: "Plain colors", note: "One solid color", image: "images/Q9-1-Plain-colors.jpg", width: 1600, height: 1217 },
+      { value: "Mixed colors", note: "Colors blend together", image: "images/Q9-2-Mixed-colors.jpg", width: 1600, height: 1217 } ] },
 ];
 
 /** @type {TextQuestion[]} */
@@ -454,47 +351,12 @@ const TEXT_QUESTIONS = [
 ];
 
 const TOTAL_QUESTIONS = STYLE_QUESTIONS.length + YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length;
-const DRAFT_KEY = "style-questionnaire-draft";
+const DRAFT_KEY = "style-questionnaire-draft-v2";
 
 /** @type {Answers} */
 const state = { picks: {}, yesno: {}, text: {}, name: "" };
 
 const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
-
-/** Build the restaurant UI illustration for one style option. */
-function mockHtml(/** @type {MockStyle} */ style) {
-  const attrs = Object.entries(style).map(([k, v]) => `data-${k}="${v}"`).join(" ");
-  return `<div class="mock" ${attrs} aria-hidden="true">
-    <div class="m-band">Live music Fri · Happy hour 4–6 · Sunday brunch</div>
-    <div class="mp hero">
-      <div class="ph"></div>
-      <div class="hero-body">
-        <span class="m-tag">New menu</span>
-        <span class="m-h">Slow dinners, warm rooms</span>
-        <i class="ln"></i><i class="ln s"></i>
-        <span class="m-btn">Book a table</span>
-      </div>
-      <span class="sticker">-20%</span>
-    </div>
-    <div class="mp menu">
-      <span class="m-h2">Tonight</span>
-      <div class="row"><i class="ln"></i><span class="price">$14</span></div>
-      <div class="row"><i class="ln"></i><span class="price">$22</span></div>
-      <div class="row x-dense"><i class="ln"></i><span class="price">$9</span></div>
-      <div class="row x-dense"><i class="ln"></i><span class="price">$18</span></div>
-    </div>
-    <div class="mp book">
-      <span class="m-h2">Book a table</span>
-      <div class="chips"><span>Fri</span><span class="on">Sat</span><span>Sun</span></div>
-      <div class="chips x-dense"><span>6:30</span><span class="on">7:00</span><span>7:30</span></div>
-    </div>
-    <div class="mp dishes">
-      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$18</span></div>
-      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$12</span></div>
-      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$16</span></div>
-    </div>
-  </div>`;
-}
 
 function renderStyleSections() {
   const host = /** @type {HTMLElement} */ (document.getElementById("style-sections"));
@@ -504,10 +366,10 @@ function renderStyleSections() {
         <h2 id="q-${q.id}"><span class="num">${String(i + 1).padStart(2, "0")}</span>${q.title}</h2>
         <p>${q.hint}</p>
       </div>
-      <div class="pair" role="group" aria-labelledby="q-${q.id}">
+      <div class="pair${q.options.length > 2 ? " six" : ""}" role="group" aria-labelledby="q-${q.id}">
         ${q.options.map((o) => `
           <button type="button" class="choice" data-q="${q.id}" data-v="${o.value}" aria-pressed="false">
-            <div class="choice-art">${mockHtml(o.style)}</div>
+            <div class="choice-art"><img src="${o.image}" alt="Example: ${o.value}" width="${o.width}" height="${o.height}" loading="${i < 2 ? "eager" : "lazy"}" decoding="async"></div>
             <div class="choice-foot">
               <span><b>${o.value}</b><small>${o.note}</small></span>
               <span class="tick">${CHECK_SVG}</span>
