@@ -33,6 +33,8 @@
 }
 
 * { box-sizing: border-box; }
+/* Elements toggled with the hidden attribute must stay hidden even when a class sets display. */
+[hidden] { display: none !important; }
 body {
   background: var(--bg); color: var(--ink);
   font-family: var(--font-body); font-size: 16px; line-height: 1.5;
