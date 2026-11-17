@@ -1,0 +1,690 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Restaurant Style Questionnaire</title>
+<meta name="description" content="Pick the website style that feels right for your restaurant.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Instrument+Sans:wght@400;500;600;700&family=Instrument+Serif:ital@0;1&display=swap">
+<style>
+/* Layout: one left-aligned 880px column; each style question is a pair of picture cards, then forms, then a summary card. */
+:root {
+  --bg: #fbfaf8;
+  --surface: #ffffff;
+  --ink: #1c1b1a;
+  --muted: #6b6762;
+  --line: #e4e0da;
+  --accent: #c2452d;
+  --on-ink: #ffffff;
+  --font-display: "Instrument Serif", "Iowan Old Style", Georgia, serif;
+  --font-body: "Instrument Sans", "Segoe UI", system-ui, sans-serif;
+  --ease: cubic-bezier(.2, .7, .2, 1);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #151413; --surface: #1d1c1a; --ink: #f1eee9; --muted: #a39e97;
+    --line: #34312d; --accent: #e8735a; --on-ink: #151413; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #151413; --surface: #1d1c1a; --ink: #f1eee9; --muted: #a39e97;
+  --line: #34312d; --accent: #e8735a; --on-ink: #151413; color-scheme: dark;
+}
+
+* { box-sizing: border-box; }
+body {
+  background: var(--bg); color: var(--ink);
+  font-family: var(--font-body); font-size: 16px; line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+body::before {
+  content: ""; position: fixed; inset: 0 0 auto; height: env(safe-area-inset-top, 0px);
+  z-index: 10; background: var(--bg);
+}
+button, input, textarea { font: inherit; color: inherit; }
+:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px; }
+
+/* ---------- Top bar ---------- */
+.topbar {
+  position: sticky; top: env(safe-area-inset-top, 0px); z-index: 5;
+  background: var(--bg); border-bottom: 1px solid var(--line);
+}
+.topbar-inner {
+  max-width: 912px; margin: 0 auto;
+  padding-block: 12px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  font-size: 13px; color: var(--muted);
+}
+.topbar strong { color: var(--ink); font-weight: 600; }
+.progress { height: 2px; background: var(--line); }
+.progress span {
+  display: block; height: 100%; width: 0; background: var(--accent);
+  transition: width .5s var(--ease);
+}
+
+/* ---------- Page column ---------- */
+.page {
+  max-width: 912px; margin: 0 auto;
+  padding-block: 48px 96px;
+  padding-left: max(16px, env(safe-area-inset-left, 0px));
+  padding-right: max(16px, env(safe-area-inset-right, 0px));
+  display: grid; gap: 64px;
+}
+.stack { display: grid; gap: 64px; }
+.intro { display: grid; gap: 12px; max-width: 640px; }
+.eyebrow {
+  font-size: 13px; font-weight: 600; letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent);
+}
+h1 {
+  font-family: var(--font-display); font-weight: 400;
+  font-size: clamp(32px, 6vw, 48px); line-height: 1.1; margin: 0;
+  text-wrap: balance; letter-spacing: -.01em;
+}
+.intro p { margin: 0; color: var(--muted); max-width: 60ch; }
+.intro .time { font-size: 13px; color: var(--ink); font-weight: 600; }
+
+.section { display: grid; gap: 24px; }
+.section-head { display: grid; gap: 4px; }
+.section-head h2 {
+  margin: 0; font-family: var(--font-display); font-weight: 400;
+  font-size: 28px; line-height: 1.2; display: flex; gap: 12px; align-items: baseline;
+}
+.num { font-family: var(--font-body); font-size: 13px; font-weight: 600; color: var(--accent); font-variant-numeric: tabular-nums; }
+.section-head p { margin: 0; color: var(--muted); font-size: 16px; }
+
+/* ---------- Picture choice pair ---------- */
+.pair { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+.choice {
+  display: grid; grid-template-rows: 1fr auto;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  padding: 0; overflow: hidden; cursor: pointer; text-align: left;
+  transition: transform .25s var(--ease), border-color .2s, box-shadow .25s var(--ease);
+}
+.choice:hover { transform: translateY(-4px); box-shadow: 0 12px 24px -16px rgba(28, 27, 26, .35); }
+.choice[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.choice-art { padding: 16px; background: var(--line); display: grid; }
+.choice-foot {
+  display: flex; align-items: center; justify-content: space-between; gap: 12px;
+  padding: 12px 16px; min-height: 64px;
+}
+.choice-foot b { display: block; font-weight: 600; font-size: 16px; }
+.choice-foot small { display: block; color: var(--muted); font-size: 13px; }
+.tick {
+  flex: none; width: 28px; height: 28px; border-radius: 50%;
+  border: 1.5px solid var(--line); display: grid; place-items: center;
+  transition: background .2s, border-color .2s;
+}
+.tick svg { width: 14px; height: 14px; stroke: var(--on-ink); opacity: 0; transform: scale(.4); transition: opacity .2s, transform .3s var(--ease); }
+.choice[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); }
+.choice[aria-pressed="true"] .tick svg { opacity: 1; transform: scale(1); }
+
+/* ---------- Mock restaurant UI (the "pictures") ----------
+   Fixed illustration palette, independent of the page theme, like a photo would be. */
+.mock {
+  --r: 12px; --pad: 16px; --gap: 12px;
+  --m-paper: #ffffff; --m-ink: #1f1d1b; --m-soft: #f2efe9; --m-line: #ddd7ce;
+  --m-acc: #c2452d; --m-acc-ink: #ffffff;
+  --p-hero: var(--m-paper); --p-menu: var(--m-paper); --p-book: var(--m-paper); --p-dish: var(--m-paper);
+  --t-hero: var(--m-ink); --t-menu: var(--m-ink); --t-book: var(--m-ink); --t-dish: var(--m-ink);
+  --ph-bg: #e9c9a8; --ph-food: #c2452d; --btn-bg: var(--m-ink); --btn-ink: #ffffff;
+  --h-font: var(--font-body); --h-weight: 600; --h-style: normal; --h-case: none; --h-size: 18px; --h-track: -.01em;
+  display: grid; gap: var(--gap);
+  grid-template-columns: 1.15fr 1fr;
+  grid-template-areas: "band band" "hero menu" "hero book" "dish dish";
+  font-family: var(--font-body); color: var(--m-ink); font-size: 12px; line-height: 1.3;
+}
+.mp {
+  border-radius: var(--r); padding: var(--pad); border: 1px solid var(--m-line);
+  display: grid; gap: 8px; align-content: start; min-width: 0; position: relative; overflow: hidden;
+}
+.mp.hero { grid-area: hero; background: var(--p-hero); color: var(--t-hero); padding: 0; gap: 0; }
+.mp.menu { grid-area: menu; background: var(--p-menu); color: var(--t-menu); }
+.mp.book { grid-area: book; background: var(--p-book); color: var(--t-book); }
+.mp.dishes { grid-area: dish; background: var(--p-dish); color: var(--t-dish); grid-template-columns: repeat(3, 1fr); }
+.hero-body { padding: var(--pad); display: grid; gap: 8px; }
+.m-h {
+  font-family: var(--h-font); font-weight: var(--h-weight); font-style: var(--h-style);
+  text-transform: var(--h-case); font-size: var(--h-size); letter-spacing: var(--h-track); line-height: 1.1;
+}
+.m-h2 { font-family: var(--h-font); font-weight: var(--h-weight); font-style: var(--h-style); text-transform: var(--h-case); font-size: 13px; letter-spacing: var(--h-track); }
+.ln { display: block; height: 6px; border-radius: 4px; background: currentColor; opacity: .18; }
+.ln.s { width: 60%; }
+.row { display: flex; align-items: center; gap: 8px; }
+.row .ln { flex: 1; }
+.price { font-weight: 600; font-variant-numeric: tabular-nums; }
+.ph {
+  aspect-ratio: 4 / 3; max-width: 100%; background: var(--ph-bg); position: relative; overflow: hidden;
+}
+.ph::before {
+  content: ""; position: absolute; width: 58%; aspect-ratio: 1; left: 21%; top: 12%;
+  border-radius: 50%; background: #fbf8f3; box-shadow: 0 6px 0 -2px rgba(0, 0, 0, .08);
+}
+.ph::after {
+  content: ""; position: absolute; width: 30%; aspect-ratio: 1; left: 35%; top: 30%;
+  border-radius: 50%; background: var(--ph-food);
+}
+.dish { display: grid; gap: 4px; min-width: 0; }
+.dish .ph { border-radius: calc(var(--r) * .66); }
+.chips { display: flex; gap: 4px; flex-wrap: wrap; }
+.chips span {
+  padding: 4px 8px; border-radius: calc(var(--r) * .66); border: 1px solid currentColor;
+  opacity: .7; font-variant-numeric: tabular-nums;
+}
+.chips span.on { background: var(--btn-bg); color: var(--btn-ink); border-color: transparent; opacity: 1; }
+.m-btn {
+  justify-self: start; padding: 8px 12px; border-radius: calc(var(--r) * .66);
+  background: var(--btn-bg); color: var(--btn-ink); font-weight: 600;
+}
+.m-band {
+  grid-area: band; display: none; padding: 4px 12px; border-radius: var(--r);
+  background: var(--m-ink); color: #ffffff; font-weight: 600; white-space: nowrap; overflow: hidden;
+}
+.m-tag {
+  display: none; justify-self: start; padding: 2px 8px; border-radius: 99px;
+  background: #ffd84d; color: #1f1d1b; font-weight: 700; font-size: 12px;
+}
+.sticker {
+  display: none; position: absolute; right: 8px; top: 8px; width: 40px; height: 40px; border-radius: 50%;
+  background: #ffd84d; color: #1f1d1b; font-weight: 700; place-items: center; transform: rotate(-12deg); font-size: 12px;
+}
+.x-dense { display: none; }
+
+/* Corner shape */
+.mock[data-radius="square"] { --r: 0px; }
+/* Flat vs filled */
+.mock[data-surface="filled"] {
+  --p-hero: #f3d9c7; --p-menu: #efe4d6; --p-book: #1f1d1b; --t-book: #ffffff; --p-dish: #f3d9c7;
+  --btn-bg: var(--m-acc);
+}
+.mock[data-surface="filled"] .mp { border-color: transparent; box-shadow: 0 8px 16px -12px rgba(0, 0, 0, .45); }
+.mock[data-surface="filled"] .mp.menu {
+  background-image: radial-gradient(rgba(194, 69, 45, .18) 1.5px, transparent 1.6px); background-size: 12px 12px;
+}
+.mock[data-surface="filled"] .ph { background: #8f3a24; }
+/* Empty space */
+.mock[data-density="packed"] { --pad: 8px; --gap: 4px; --h-size: 16px; }
+.mock[data-density="packed"] .x-dense { display: revert; }
+.mock[data-density="packed"] .chips.x-dense { display: flex; }
+.mock[data-density="packed"] .mp { gap: 4px; }
+/* Colors */
+.mock[data-palette="many"] {
+  --p-hero: #ffd84d; --p-menu: #2f6f4f; --t-menu: #ffffff; --p-book: #ff7a59; --t-book: #1f1d1b;
+  --p-dish: #6c5ce7; --t-dish: #ffffff; --ph-bg: #4cc3d9; --ph-food: #ff7a59; --btn-bg: #6c5ce7;
+}
+.mock[data-palette="many"] .mp { border-color: transparent; }
+.mock[data-palette="many"] .mp.book .chips span.on { background: #1f1d1b; }
+/* Letter style */
+.mock[data-font="serif"] { --h-font: var(--font-display); --h-weight: 400; --h-size: 22px; --h-track: 0; }
+/* Letter combinations */
+.mock[data-weight="bold"] { --h-weight: 700; --h-case: uppercase; --h-size: 18px; --h-track: -.02em; }
+.mock[data-weight="light"] { --h-font: var(--font-display); --h-weight: 400; --h-style: italic; --h-size: 22px; --h-track: 0; }
+/* Sample page */
+.mock[data-busy="busy"] .m-band { display: block; }
+.mock[data-busy="busy"] .m-tag { display: inline-block; }
+.mock[data-busy="busy"] .sticker { display: grid; }
+.mock[data-busy="busy"] { --p-menu: #fff4d6; --p-dish: #ffe9e2; }
+/* How colors look */
+.mock[data-blend="blend"] {
+  --btn-bg: linear-gradient(120deg, #c2452d, #e88a3a 55%, #b8478e);
+}
+.mock[data-blend="blend"] .ph { background: linear-gradient(140deg, #f6b26b, #e2604a 50%, #8e4fb8); }
+.mock[data-blend="blend"] .mp.book { background: linear-gradient(160deg, #fff1e6, #f7dcef); }
+.mock[data-blend="blend"] .m-btn, .mock[data-blend="blend"] .chips span.on { background: var(--btn-bg); }
+
+/* ---------- Yes / No ---------- */
+.yn-list { display: grid; gap: 8px; }
+.yn {
+  display: flex; align-items: center; justify-content: space-between; gap: 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px; padding: 12px 16px;
+}
+.yn p { margin: 0; min-width: 0; }
+.seg { display: flex; gap: 4px; flex: none; }
+.seg button {
+  min-width: 64px; min-height: 44px; padding: 0 16px; border-radius: 8px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); font-weight: 600;
+  transition: background .2s, color .2s, border-color .2s, transform .15s;
+}
+.seg button:hover { border-color: var(--ink); }
+.seg button:active { transform: scale(.96); }
+.seg button[aria-pressed="true"] { background: var(--ink); color: var(--on-ink); border-color: var(--ink); }
+
+/* ---------- Text questions ---------- */
+.tq-list { display: grid; gap: 16px; }
+.tq {
+  display: grid; gap: 8px; background: var(--surface); border: 1px solid var(--line);
+  border-radius: 12px; padding: 16px;
+}
+.tq label { font-weight: 500; }
+textarea, input[type="text"] {
+  width: 100%; border: 1px solid var(--line); border-radius: 8px; background: var(--bg);
+  padding: 12px; transition: border-color .2s;
+}
+textarea { min-height: 96px; resize: vertical; }
+textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: none; }
+
+/* ---------- Summary ---------- */
+.summary {
+  background: var(--surface); border: 1px solid var(--ink); border-radius: 16px;
+  padding: 24px; display: grid; gap: 24px;
+}
+.summary-head { display: flex; justify-content: space-between; align-items: baseline; gap: 16px; flex-wrap: wrap; }
+.summary-head h2 { margin: 0; font-family: var(--font-display); font-weight: 400; font-size: 28px; line-height: 1.2; }
+.summary-head span { font-size: 13px; color: var(--muted); font-variant-numeric: tabular-nums; }
+.picks { display: grid; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); gap: 16px 24px; margin: 0; }
+.picks div { min-width: 0; }
+.picks dt { font-size: 13px; color: var(--muted); }
+.picks dd { margin: 0; font-weight: 600; }
+.picks dd.empty { color: var(--muted); font-weight: 400; }
+.picks dd.flash { animation: flash .6s var(--ease); }
+@keyframes flash { from { color: var(--accent); transform: translateY(-4px); } to { transform: none; } }
+.send { display: grid; gap: 16px; border-top: 1px solid var(--line); padding-top: 24px; }
+.send h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.send p { margin: 0; color: var(--muted); max-width: 60ch; }
+.name-field { display: grid; gap: 4px; max-width: 360px; }
+.name-field label { font-size: 13px; color: var(--muted); }
+.actions { display: flex; align-items: center; justify-content: space-between; gap: 12px; flex-wrap: wrap; }
+.actions-right { display: flex; gap: 8px; flex-wrap: wrap; margin-left: auto; }
+.btn {
+  min-height: 44px; padding: 0 20px; border-radius: 8px; cursor: pointer; font-weight: 600;
+  border: 1px solid var(--line); background: var(--surface);
+  transition: transform .15s, background .2s, border-color .2s;
+}
+.btn:hover { border-color: var(--ink); }
+.btn:active { transform: scale(.97); }
+.btn.primary { background: var(--accent); border-color: var(--accent); color: #ffffff; }
+.btn.primary:hover { filter: brightness(1.06); }
+.btn.quiet { border-color: transparent; background: transparent; color: var(--muted); padding: 0 12px; }
+.btn.quiet:hover { color: var(--ink); }
+.btn:disabled { opacity: .5; cursor: not-allowed; }
+.confirm { display: flex; align-items: center; gap: 8px; flex-wrap: wrap; font-size: 13px; }
+.status { font-size: 13px; min-height: 20px; margin: 0; }
+.status.ok { color: #2f7a4f; }
+.status.err { color: var(--accent); }
+
+/* ---------- Load-in motion ---------- */
+.rise { animation: rise .6s var(--ease) both; }
+@keyframes rise { from { opacity: .001; transform: translateY(12px); } to { opacity: 1; transform: none; } }
+
+@media (max-width: 640px) {
+  .pair { grid-template-columns: 1fr; }
+  .yn { flex-direction: column; align-items: stretch; }
+  .seg button { flex: 1; }
+  .summary { padding: 20px 16px; }
+  .page { gap: 48px; padding-block: 32px 64px; }
+}
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after { animation: none !important; transition: none !important; }
+}
+</style>
+</head>
+<body>
+
+<div class="topbar">
+  <div class="topbar-inner">
+    <strong>Website style questionnaire</strong>
+    <span id="progress-label">0 of 23 answered</span>
+  </div>
+  <div class="progress"><span id="progress-bar"></span></div>
+</div>
+
+<main class="page">
+  <header class="intro rise">
+    <span class="eyebrow">A few quick questions</span>
+    <h1>Which style feels right for your business?</h1>
+    <p>Tap the picture you like more in each pair. Don't overthink it. There are no right or wrong answers, and you can change your mind any time.</p>
+    <span class="time">Takes about 5 minutes</span>
+  </header>
+
+  <div id="style-sections" class="stack"></div>
+
+  <section class="section" aria-labelledby="yn-title">
+    <div class="section-head">
+      <h2 id="yn-title"><span class="num">09</span>About your website</h2>
+      <p>Answer Yes or No for each one.</p>
+    </div>
+    <div class="yn-list" id="yn-list"></div>
+  </section>
+
+  <section class="section" aria-labelledby="tq-title">
+    <div class="section-head">
+      <h2 id="tq-title"><span class="num">10</span>Tell us about your restaurant</h2>
+      <p>Type your answers in each box. Short answers are fine.</p>
+    </div>
+    <div class="tq-list" id="tq-list"></div>
+  </section>
+
+  <section class="summary" aria-labelledby="sum-title">
+    <div class="summary-head">
+      <h2 id="sum-title">Your picks</h2>
+      <span id="sum-count">0 of 23 answered</span>
+    </div>
+    <dl class="picks" id="picks"></dl>
+    <div class="send">
+      <h3>All done? Send your answers to us</h3>
+      <p>Type your name, press Copy my answers, then paste them into an email or WhatsApp message to us.</p>
+      <div class="name-field">
+        <label for="client-name">Your name</label>
+        <input type="text" id="client-name" autocomplete="name" placeholder="Your full name">
+      </div>
+      <div class="actions">
+        <div id="reset-area">
+          <button type="button" class="btn quiet" id="reset-btn">Start over</button>
+        </div>
+        <div class="actions-right">
+          <button type="button" class="btn primary" id="copy-btn">Copy my answers</button>
+        </div>
+      </div>
+      <p class="status" id="status" role="status"></p>
+    </div>
+  </section>
+</main>
+
+<script>
+/**
+ * @typedef {{radius?: string, surface?: string, density?: string, palette?: string,
+ *            font?: string, weight?: string, busy?: string, blend?: string}} MockStyle
+ * @typedef {{value: string, note: string, style: MockStyle}} StyleOption
+ * @typedef {{id: string, title: string, hint: string, options: StyleOption[]}} StyleQuestion
+ * @typedef {{id: string, label: string, text: string}} TextQuestion
+ * @typedef {{picks: Record<string, string>, yesno: Record<string, string>, text: Record<string, string>, name: string}} Answers
+ */
+
+/** @type {StyleQuestion[]} */
+const STYLE_QUESTIONS = [
+  { id: "corner", title: "Corner shape", hint: "Should the boxes have round corners or square corners?",
+    options: [
+      { value: "Rounded corners", note: "Soft and friendly", style: { radius: "round" } },
+      { value: "Square corners", note: "Sharp and neat", style: { radius: "square" } } ] },
+  { id: "surface", title: "Flat or filled look", hint: "Plain white boxes, or boxes filled with color and texture?",
+    options: [
+      { value: "Flat look", note: "Clean white boxes", style: { surface: "flat" } },
+      { value: "Filled look", note: "Color and texture", style: { surface: "filled" } } ] },
+  { id: "space", title: "Empty space", hint: "Lots of room around things, or more on each screen?",
+    options: [
+      { value: "Lots of empty space", note: "Calm and roomy", style: { density: "airy" } },
+      { value: "Packed with content", note: "More to see at once", style: { density: "packed" } } ] },
+  { id: "colors", title: "Colors", hint: "Just one or two colors, or many bright colors?",
+    options: [
+      { value: "Few colors", note: "Black, white and one color", style: { palette: "few" } },
+      { value: "Many colors", note: "Bright and playful", style: { palette: "many" } } ] },
+  { id: "letters", title: "Letter style", hint: "Look at the big titles. Which letters do you like?",
+    options: [
+      { value: "Letters with no tails", note: "Modern and simple", style: { font: "sans" } },
+      { value: "Letters with tails", note: "Classic, like a menu card", style: { font: "serif" } } ] },
+  { id: "combo", title: "Letter combinations", hint: "Strong, heavy titles or light, elegant ones?",
+    options: [
+      { value: "Bold and strong", note: "Big and confident", style: { weight: "bold" } },
+      { value: "Light and elegant", note: "Fine and graceful", style: { weight: "light" } } ] },
+  { id: "page", title: "Sample web page", hint: "Which page feels more like your restaurant?",
+    options: [
+      { value: "Simple and clean", note: "Only what matters", style: { busy: "simple" } },
+      { value: "Bold and busy", note: "Lively, lots going on", style: { busy: "busy" } } ] },
+  { id: "blend", title: "How colors look", hint: "Solid colors, or colors that blend into each other?",
+    options: [
+      { value: "Plain colors", note: "One solid color", style: { blend: "plain" } },
+      { value: "Color blends", note: "Colors mix together", style: { blend: "blend" } } ] },
+];
+
+/** @type {TextQuestion[]} */
+const YES_NO_QUESTIONS = [
+  { id: "story", label: "Story page", text: "Do you want a page that tells the story of your restaurant?" },
+  { id: "photos", label: "Has photos and videos", text: "Do you already have all the photos and videos for the website?" },
+  { id: "booking", label: "Table booking", text: "Do you want customers to book a table on the website?" },
+  { id: "logo", label: "Has a logo", text: "Do you already have a logo?" },
+  { id: "brand", label: "Has brand colors and fonts", text: "Do you already have brand colors, fonts and style rules?" },
+  { id: "contact", label: "Contact form", text: "Do you want a form where customers can send you a message?" },
+];
+
+/** @type {TextQuestion[]} */
+const TEXT_QUESTIONS = [
+  { id: "why", label: "Your story", text: "Why are you opening this restaurant? Tell us your story. (We will use it for the About page.)" },
+  { id: "food", label: "Food and drinks", text: "What kind of food and drinks will you serve?" },
+  { id: "address", label: "Address and hours", text: "What is the restaurant address, and what are your opening hours?" },
+  { id: "guests", label: "Who you want to welcome", text: "Who do you want to come to your restaurant? (For example: families, students, office workers)" },
+  { id: "howbook", label: "How guests book", text: "How should guests book a table? (For example: on our website, OpenTable, or by phone)" },
+  { id: "domain", label: "Website address", text: "What website address would you like? (For example: yourplace.com) Do you have one already?" },
+  { id: "launch", label: "Opening and launch date", text: "When does the restaurant open, and when should the website be live?" },
+  { id: "likes", label: "Websites you like", text: "Write the names or links of restaurant websites you like, and what you like about them." },
+  { id: "socials", label: "Phone, email and social media", text: "What phone number, email and social media pages (Instagram, Facebook) should we show on the website?" },
+];
+
+const TOTAL_QUESTIONS = STYLE_QUESTIONS.length + YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length;
+const DRAFT_KEY = "style-questionnaire-draft";
+
+/** @type {Answers} */
+const state = { picks: {}, yesno: {}, text: {}, name: "" };
+
+const CHECK_SVG = '<svg viewBox="0 0 16 16" fill="none" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8.5l3.2 3L13 4.5"/></svg>';
+
+/** Build the restaurant UI illustration for one style option. */
+function mockHtml(/** @type {MockStyle} */ style) {
+  const attrs = Object.entries(style).map(([k, v]) => `data-${k}="${v}"`).join(" ");
+  return `<div class="mock" ${attrs} aria-hidden="true">
+    <div class="m-band">Live music Fri · Happy hour 4–6 · Sunday brunch</div>
+    <div class="mp hero">
+      <div class="ph"></div>
+      <div class="hero-body">
+        <span class="m-tag">New menu</span>
+        <span class="m-h">Slow dinners, warm rooms</span>
+        <i class="ln"></i><i class="ln s"></i>
+        <span class="m-btn">Book a table</span>
+      </div>
+      <span class="sticker">-20%</span>
+    </div>
+    <div class="mp menu">
+      <span class="m-h2">Tonight</span>
+      <div class="row"><i class="ln"></i><span class="price">$14</span></div>
+      <div class="row"><i class="ln"></i><span class="price">$22</span></div>
+      <div class="row x-dense"><i class="ln"></i><span class="price">$9</span></div>
+      <div class="row x-dense"><i class="ln"></i><span class="price">$18</span></div>
+    </div>
+    <div class="mp book">
+      <span class="m-h2">Book a table</span>
+      <div class="chips"><span>Fri</span><span class="on">Sat</span><span>Sun</span></div>
+      <div class="chips x-dense"><span>6:30</span><span class="on">7:00</span><span>7:30</span></div>
+    </div>
+    <div class="mp dishes">
+      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$18</span></div>
+      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$12</span></div>
+      <div class="dish"><div class="ph"></div><i class="ln"></i><span class="price">$16</span></div>
+    </div>
+  </div>`;
+}
+
+function renderStyleSections() {
+  const host = /** @type {HTMLElement} */ (document.getElementById("style-sections"));
+  host.innerHTML = STYLE_QUESTIONS.map((q, i) => `
+    <section class="section" aria-labelledby="q-${q.id}">
+      <div class="section-head">
+        <h2 id="q-${q.id}"><span class="num">${String(i + 1).padStart(2, "0")}</span>${q.title}</h2>
+        <p>${q.hint}</p>
+      </div>
+      <div class="pair" role="group" aria-labelledby="q-${q.id}">
+        ${q.options.map((o) => `
+          <button type="button" class="choice" data-q="${q.id}" data-v="${o.value}" aria-pressed="false">
+            <div class="choice-art">${mockHtml(o.style)}</div>
+            <div class="choice-foot">
+              <span><b>${o.value}</b><small>${o.note}</small></span>
+              <span class="tick">${CHECK_SVG}</span>
+            </div>
+          </button>`).join("")}
+      </div>
+    </section>`).join("");
+}
+
+function renderYesNo() {
+  const host = /** @type {HTMLElement} */ (document.getElementById("yn-list"));
+  host.innerHTML = YES_NO_QUESTIONS.map((q) => `
+    <div class="yn">
+      <p id="yn-${q.id}">${q.text}</p>
+      <div class="seg" role="group" aria-labelledby="yn-${q.id}">
+        <button type="button" data-yn="${q.id}" data-v="Yes" aria-pressed="false">Yes</button>
+        <button type="button" data-yn="${q.id}" data-v="No" aria-pressed="false">No</button>
+      </div>
+    </div>`).join("");
+}
+
+function renderTextQuestions() {
+  const host = /** @type {HTMLElement} */ (document.getElementById("tq-list"));
+  host.innerHTML = TEXT_QUESTIONS.map((q) => `
+    <div class="tq">
+      <label for="tq-${q.id}">${q.text}</label>
+      <textarea id="tq-${q.id}" data-tq="${q.id}" placeholder="Type here…"></textarea>
+    </div>`).join("");
+}
+
+/** Every answered item as label/value rows, in questionnaire order. */
+function answerRows(/** @type {Answers} */ a) {
+  /** @type {{label: string, value: string, long: boolean}[]} */
+  const rows = [];
+  STYLE_QUESTIONS.forEach((q) => rows.push({ label: q.title, value: a.picks[q.id] ?? "", long: false }));
+  YES_NO_QUESTIONS.forEach((q) => rows.push({ label: q.label, value: a.yesno[q.id] ?? "", long: false }));
+  TEXT_QUESTIONS.forEach((q) => rows.push({ label: q.label, value: (a.text[q.id] ?? "").trim(), long: true }));
+  return rows;
+}
+
+function answeredCount() {
+  return answerRows(state).filter((r) => r.value !== "").length;
+}
+
+function renderProgress() {
+  const n = answeredCount();
+  const label = `${n} of ${TOTAL_QUESTIONS} answered`;
+  /** @type {HTMLElement} */ (document.getElementById("progress-label")).textContent = label;
+  /** @type {HTMLElement} */ (document.getElementById("sum-count")).textContent = label;
+  /** @type {HTMLElement} */ (document.getElementById("progress-bar")).style.width = `${(n / TOTAL_QUESTIONS) * 100}%`;
+}
+
+function renderPicks(/** @type {string | null} */ changedLabel) {
+  const host = /** @type {HTMLElement} */ (document.getElementById("picks"));
+  host.innerHTML = answerRows(state).filter((r) => !r.long).map((r) => `
+    <div><dt>${r.label}</dt><dd class="${r.value ? "" : "empty"}${r.label === changedLabel ? " flash" : ""}">${r.value || "Not picked yet"}</dd></div>`).join("");
+}
+
+function syncPressed() {
+  document.querySelectorAll(".choice").forEach((el) => {
+    const b = /** @type {HTMLElement} */ (el);
+    b.setAttribute("aria-pressed", String(state.picks[b.dataset.q ?? ""] === b.dataset.v));
+  });
+  document.querySelectorAll("[data-yn]").forEach((el) => {
+    const b = /** @type {HTMLElement} */ (el);
+    b.setAttribute("aria-pressed", String(state.yesno[b.dataset.yn ?? ""] === b.dataset.v));
+  });
+}
+
+function syncInputs() {
+  document.querySelectorAll("[data-tq]").forEach((el) => {
+    const t = /** @type {HTMLTextAreaElement} */ (el);
+    t.value = state.text[t.dataset.tq ?? ""] ?? "";
+  });
+  /** @type {HTMLInputElement} */ (document.getElementById("client-name")).value = state.name;
+}
+
+function renderAll(/** @type {string | null} */ changedLabel) {
+  syncPressed();
+  renderPicks(changedLabel);
+  renderProgress();
+}
+
+/** Browser draft so a client can come back later; storage may be blocked, which only loses the draft. */
+function saveDraft() {
+  try { localStorage.setItem(DRAFT_KEY, JSON.stringify(state)); } catch (e) { /* storage blocked in this view */ }
+}
+
+function loadDraft() {
+  try {
+    const raw = localStorage.getItem(DRAFT_KEY);
+    if (!raw) return;
+    const d = /** @type {Answers} */ (JSON.parse(raw));
+    state.picks = d.picks ?? {}; state.yesno = d.yesno ?? {}; state.text = d.text ?? {}; state.name = d.name ?? "";
+  } catch (e) { /* storage blocked in this view */ }
+}
+
+function setStatus(/** @type {string} */ msg, /** @type {"ok" | "err" | ""} */ kind) {
+  const el = /** @type {HTMLElement} */ (document.getElementById("status"));
+  el.textContent = msg;
+  el.className = `status ${kind}`;
+}
+
+/** Plain-text version of the answers for pasting into email or WhatsApp. */
+function answersAsText() {
+  const lines = [`Website questionnaire — ${state.name.trim() || "No name given"}`, ""];
+  answerRows(state).forEach((r) => {
+    if (r.long) lines.push("", `${r.label}:`, r.value || "-");
+    else lines.push(`${r.label}: ${r.value || "-"}`);
+  });
+  return lines.join("\n");
+}
+
+async function copyAnswers() {
+  try {
+    await navigator.clipboard.writeText(answersAsText());
+    setStatus("Copied. Paste your answers into an email or message to us.", "ok");
+  } catch (e) {
+    setStatus("Your browser blocked copying. Select the answers above and copy them by hand.", "err");
+  }
+}
+
+function bindEvents() {
+  document.addEventListener("click", (ev) => {
+    const target = /** @type {HTMLElement} */ (ev.target);
+    const choice = /** @type {HTMLElement | null} */ (target.closest(".choice"));
+    if (choice) {
+      const q = STYLE_QUESTIONS.find((s) => s.id === choice.dataset.q);
+      state.picks[choice.dataset.q ?? ""] = choice.dataset.v ?? "";
+      saveDraft(); renderAll(q ? q.title : null);
+      return;
+    }
+    const yn = /** @type {HTMLElement | null} */ (target.closest("[data-yn]"));
+    if (yn) {
+      const q = YES_NO_QUESTIONS.find((s) => s.id === yn.dataset.yn);
+      state.yesno[yn.dataset.yn ?? ""] = yn.dataset.v ?? "";
+      saveDraft(); renderAll(q ? q.label : null);
+    }
+  });
+  document.addEventListener("input", (ev) => {
+    const t = /** @type {HTMLTextAreaElement} */ (ev.target);
+    if (t.dataset.tq) { state.text[t.dataset.tq] = t.value; saveDraft(); renderProgress(); }
+    if (t.id === "client-name") { state.name = t.value; saveDraft(); }
+  });
+  /** @type {HTMLElement} */ (document.getElementById("copy-btn")).addEventListener("click", copyAnswers);
+  /** @type {HTMLElement} */ (document.getElementById("reset-btn")).addEventListener("click", showResetConfirm);
+}
+
+function showResetConfirm() {
+  const area = /** @type {HTMLElement} */ (document.getElementById("reset-area"));
+  area.innerHTML = `<span class="confirm">Clear all your answers?
+    <button type="button" class="btn" id="reset-yes">Yes, clear</button>
+    <button type="button" class="btn quiet" id="reset-no">Keep them</button></span>`;
+  /** @type {HTMLElement} */ (document.getElementById("reset-yes")).addEventListener("click", resetAnswers);
+  /** @type {HTMLElement} */ (document.getElementById("reset-no")).addEventListener("click", restoreResetButton);
+}
+
+function restoreResetButton() {
+  const area = /** @type {HTMLElement} */ (document.getElementById("reset-area"));
+  area.innerHTML = `<button type="button" class="btn quiet" id="reset-btn">Start over</button>`;
+  /** @type {HTMLElement} */ (document.getElementById("reset-btn")).addEventListener("click", showResetConfirm);
+}
+
+function resetAnswers() {
+  state.picks = {}; state.yesno = {}; state.text = {}; state.name = "";
+  saveDraft(); syncInputs(); renderAll(null); restoreResetButton();
+  setStatus("All answers cleared.", "");
+  window.scrollTo({ top: 0, behavior: "smooth" });
+}
+
+renderStyleSections();
+renderYesNo();
+renderTextQuestions();
+loadDraft();
+syncInputs();
+renderAll(null);
+bindEvents();
+</script>
+</body>
+</html>
