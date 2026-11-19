@@ -197,6 +197,13 @@ textarea:focus, input[type="text"]:focus { border-color: var(--ink); outline: no
 .picks dd.empty { color: var(--muted); font-weight: 400; }
 .picks dd.flash { animation: flash .6s var(--ease); }
 @keyframes flash { from { color: var(--accent); transform: translateY(-4px); } to { transform: none; } }
+.review-group { display: grid; gap: 16px; }
+.review-group h3 { margin: 0; font-size: 16px; font-weight: 600; }
+.written { display: grid; gap: 16px; margin: 0; }
+.written div { display: grid; gap: 4px; max-width: 72ch; }
+.written dt { font-size: 13px; color: var(--muted); }
+.written dd { margin: 0; white-space: pre-wrap; overflow-wrap: anywhere; }
+.written dd.empty { color: var(--muted); }
 .send { display: grid; gap: 16px; border-top: 1px solid var(--line); padding-top: 24px; }
 .send h3 { margin: 0; font-size: 16px; font-weight: 600; }
 .send p { margin: 0; color: var(--muted); max-width: 60ch; }
@@ -312,10 +319,17 @@ main.page { overflow-x: clip; }
 
   <section class="summary step" id="step-summary" hidden aria-labelledby="sum-title">
     <div class="summary-head">
-      <h2 id="sum-title">Your picks</h2>
+      <h2 id="sum-title">Review your answers</h2>
       <span id="sum-count">0 of 23 answered</span>
     </div>
-    <dl class="picks" id="picks"></dl>
+    <div class="review-group">
+      <h3>Your choices</h3>
+      <dl class="picks" id="picks"></dl>
+    </div>
+    <div class="review-group">
+      <h3>Your written answers</h3>
+      <dl class="written" id="written"></dl>
+    </div>
     <form class="send" id="send-form" novalidate>
       <h3>All done? Send your answers to us</h3>
       <p>Answer every question above, add your name and email, then press Submit. Your answers come straight to us.</p>
@@ -462,6 +476,20 @@ function renderPicks(/** @type {string | null} */ changedLabel) {
     <div><dt>${r.label}</dt><dd class="${r.value ? "" : "empty"}${r.label === changedLabel ? " flash" : ""}">${r.value || "Not picked yet"}</dd></div>`).join("");
 }
 
+/** Escapes typed text so it shows as plain text inside HTML. */
+function escapeHtml(/** @type {string} */ value) {
+  return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;").replace(/"/g, "&quot;");
+}
+
+/** Every written question with the client's full answer, for the final review. */
+function renderWritten() {
+  const host = /** @type {HTMLElement} */ (document.getElementById("written"));
+  host.innerHTML = TEXT_QUESTIONS.map((q) => {
+    const answer = (state.text[q.id] ?? "").trim();
+    return `<div><dt>${escapeHtml(q.text)}</dt><dd class="${answer ? "" : "empty"}">${answer ? escapeHtml(answer) : "Not answered yet"}</dd></div>`;
+  }).join("");
+}
+
 function syncPressed() {
   document.querySelectorAll(".choice").forEach((el) => {
     const b = /** @type {HTMLElement} */ (el);
@@ -570,6 +598,7 @@ function scrollToQuestion(/** @type {string} */ elementId) {
 function renderAll(/** @type {string | null} */ changedLabel) {
   syncPressed();
   renderPicks(changedLabel);
+  renderWritten();
   renderProgress();
   renderMissing();
 }
@@ -754,7 +783,7 @@ function bindEvents() {
   });
   document.addEventListener("input", (ev) => {
     const t = /** @type {HTMLTextAreaElement} */ (ev.target);
-    if (t.dataset.tq) { state.text[t.dataset.tq] = t.value; saveDraft(); renderProgress(); renderMissing(); }
+    if (t.dataset.tq) { state.text[t.dataset.tq] = t.value; saveDraft(); renderWritten(); renderProgress(); renderMissing(); }
     if (t.id === "client-name") { state.name = t.value; saveDraft(); }
     if (t.id === "client-email") { state.email = t.value; saveDraft(); }
   });
