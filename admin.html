@@ -322,6 +322,13 @@ function yesNoHtml(/** @type {Submission} */ s) {
   }).join("");
 }
 
+function choicesHtml(/** @type {Submission} */ s) {
+  return CHOICE_QUESTIONS.map((q) => {
+    const v = s.picks[q.id] ?? "";
+    return `<div><dt>${escapeHtml(q.title)}</dt><dd class="${v ? "" : "empty"}">${escapeHtml(v || "No answer")}</dd></div>`;
+  }).join("");
+}
+
 function textHtml(/** @type {Submission} */ s) {
   return TEXT_QUESTIONS.map((q) => {
     const v = (s.answers[q.id] ?? "").trim();
@@ -340,6 +347,7 @@ function clientHtml(/** @type {Submission} */ s) {
     </summary>
     <div class="detail">
       <section><h3>Picture choices</h3><div class="pick-grid">${picksHtml(s)}</div></section>
+      <section><h3>About your customers</h3><dl class="text-list">${choicesHtml(s)}</dl></section>
       <section><h3>About the website</h3><dl class="yn-grid">${yesNoHtml(s)}</dl></section>
       <section><h3>About the restaurant</h3><dl class="text-list">${textHtml(s)}</dl></section>
       <div class="detail-actions" data-actions="${escapeHtml(s.id)}">

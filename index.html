@@ -129,6 +129,28 @@ h1 {
 .choice-art img { display: block; width: 100%; height: auto; max-width: 100%; }
 .pair.six { grid-template-columns: repeat(2, 1fr); }
 
+/* ---------- Text choice list ---------- */
+.opt-list { display: grid; gap: 8px; }
+.opt {
+  display: flex; align-items: center; gap: 12px; min-height: 56px; padding: 12px 16px;
+  background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
+  cursor: pointer; text-align: left; font-weight: 500;
+  transition: border-color .2s, box-shadow .2s, transform .15s;
+}
+.opt:hover { border-color: var(--ink); }
+.opt:active { transform: scale(.99); }
+.opt[aria-pressed="true"] { border-color: var(--ink); box-shadow: 0 0 0 1px var(--ink); }
+.opt:disabled { opacity: .5; cursor: not-allowed; }
+.opt:disabled:hover { border-color: var(--line); }
+.opt-letter {
+  flex: none; width: 28px; height: 28px; border-radius: 8px; display: grid; place-items: center;
+  border: 1px solid var(--line); font-size: 13px; font-weight: 600; color: var(--muted);
+}
+.opt-text { flex: 1; min-width: 0; }
+.opt[aria-pressed="true"] .tick { background: var(--ink); border-color: var(--ink); }
+.opt[aria-pressed="true"] .tick svg { opacity: 1; transform: scale(1); }
+.section.needs-answer .opt { border-color: var(--accent); }
+
 /* ---------- Yes / No ---------- */
 .yn-list { display: grid; gap: 8px; }
 .yn {
@@ -266,8 +288,8 @@ main.page { overflow-x: clip; }
   <header class="intro rise" id="intro">
     <span class="eyebrow">A few quick questions</span>
     <h1>Which style feels right for your business?</h1>
-    <p>Tap the picture you like more. The next question opens by itself. There are no right or wrong answers, and you can go back any time.</p>
-    <span class="time">Takes about 3 minutes · One question at a time · Please answer every question</span>
+    <p>Tap the answer that fits you best. The next question opens by itself. There are no right or wrong answers, and you can go back any time.</p>
+    <span class="time">Takes about 4 minutes · One question at a time · Please answer every question</span>
   </header>
 
   <div id="style-sections" class="stack"></div>
@@ -337,11 +359,11 @@ main.page { overflow-x: clip; }
 <script src="questions.js"></script>
 <script src="config.js"></script>
 <script>
-const TOTAL_QUESTIONS = STYLE_QUESTIONS.length + YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length;
+const TOTAL_QUESTIONS = STYLE_QUESTIONS.length + CHOICE_QUESTIONS.length + YES_NO_QUESTIONS.length + TEXT_QUESTIONS.length;
 const DRAFT_KEY = "style-questionnaire-draft-v2";
 
 /** @type {Answers} */
-const state = { picks: {}, yesno: {}, text: {}, name: "", email: "" };
+const state = { picks: {}, choices: {}, yesno: {}, text: {}, name: "", email: "" };
 
 const EMAIL_PATTERN = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
@@ -369,11 +391,33 @@ function renderStyleSections() {
     </section>`).join("");
 }
 
-/** Numbers the Yes/No and text sections right after the picture questions. */
+/** One step per choice question, placed right after the picture questions. */
+function renderChoiceSections() {
+  const host = /** @type {HTMLElement} */ (document.getElementById("style-sections"));
+  host.insertAdjacentHTML("beforeend", CHOICE_QUESTIONS.map((q, i) => `
+    <section class="section step" id="sec-c-${q.id}" hidden data-required aria-labelledby="cq-${q.id}">
+      <div class="section-head">
+        <h2 id="cq-${q.id}"><span class="num">${String(STYLE_QUESTIONS.length + i + 1).padStart(2, "0")}</span>${q.title}</h2>
+        <p>${choiceHint(q)}</p>
+        <p class="missing-note">Please choose at least one answer.</p>
+      </div>
+      <div class="opt-list" role="group" aria-labelledby="cq-${q.id}">
+        ${q.options.map((o, j) => `
+          <button type="button" class="opt" data-cq="${q.id}" data-v="${o}" aria-pressed="false">
+            <span class="opt-letter" aria-hidden="true">${String.fromCharCode(65 + j)}</span>
+            <span class="opt-text">${o}</span>
+            <span class="tick">${CHECK_SVG}</span>
+          </button>`).join("")}
+      </div>
+    </section>`).join(""));
+}
+
+/** Numbers the Yes/No and text sections right after the picture and choice questions. */
 function renderSectionNumbers() {
   const pad = (/** @type {number} */ n) => String(n).padStart(2, "0");
-  /** @type {HTMLElement} */ (document.getElementById("yn-num")).textContent = pad(STYLE_QUESTIONS.length + 1);
-  /** @type {HTMLElement} */ (document.getElementById("tq-num")).textContent = pad(STYLE_QUESTIONS.length + 2);
+  const before = STYLE_QUESTIONS.length + CHOICE_QUESTIONS.length;
+  /** @type {HTMLElement} */ (document.getElementById("yn-num")).textContent = pad(before + 1);
+  /** @type {HTMLElement} */ (document.getElementById("tq-num")).textContent = pad(before + 2);
 }
 
 function renderYesNo() {
@@ -427,6 +471,24 @@ function syncPressed() {
     const b = /** @type {HTMLElement} */ (el);
     b.setAttribute("aria-pressed", String(state.yesno[b.dataset.yn ?? ""] === b.dataset.v));
   });
+  CHOICE_QUESTIONS.forEach((q) => {
+    const picked = state.choices[q.id] ?? [];
+    const full = q.maxPicks !== null && q.maxPicks > 1 && picked.length >= q.maxPicks;
+    document.querySelectorAll(`[data-cq="${q.id}"]`).forEach((el) => {
+      const b = /** @type {HTMLButtonElement} */ (el);
+      const on = picked.includes(b.dataset.v ?? "");
+      b.setAttribute("aria-pressed", String(on));
+      b.disabled = full && !on;
+    });
+  });
+}
+
+/** Records a tap on a choice option and returns true when the step should move on by itself. */
+function pickChoice(/** @type {ChoiceQuestion} */ q, /** @type {string} */ value) {
+  const picked = state.choices[q.id] ?? [];
+  if (q.maxPicks === 1) { state.choices[q.id] = [value]; return true; }
+  state.choices[q.id] = picked.includes(value) ? picked.filter((v) => v !== value) : [...picked, value];
+  return false;
 }
 
 function syncInputs() {
@@ -444,7 +506,7 @@ function syncInputs() {
 /** @type {Set<number>} */
 const attemptedSteps = new Set();
 
-/** Index of the step on screen. Steps: one per picture question, then Yes/No, then text, then summary. */
+/** Index of the step on screen. Steps: one per picture question, one per choice question, then Yes/No, then text, then summary. */
 let currentStep = 0;
 
 /** Pending automatic move to the next step after a pick. */
@@ -478,6 +540,7 @@ function missingQuestions() {
   /** @type {MissingQuestion[]} */
   const missing = [];
   STYLE_QUESTIONS.forEach((q) => { if (!state.picks[q.id]) missing.push({ label: q.title, elementId: `sec-${q.id}` }); });
+  CHOICE_QUESTIONS.forEach((q) => { if ((state.choices[q.id] ?? []).length === 0) missing.push({ label: q.label, elementId: `sec-c-${q.id}` }); });
   YES_NO_QUESTIONS.forEach((q) => { if (!state.yesno[q.id]) missing.push({ label: q.label, elementId: `yn-row-${q.id}` }); });
   TEXT_QUESTIONS.forEach((q) => { if (!(state.text[q.id] ?? "").trim()) missing.push({ label: q.label, elementId: `tq-row-${q.id}` }); });
   return missing;
@@ -521,7 +584,7 @@ function loadDraft() {
     const raw = localStorage.getItem(DRAFT_KEY);
     if (!raw) return;
     const d = /** @type {Answers} */ (JSON.parse(raw));
-    state.picks = d.picks ?? {}; state.yesno = d.yesno ?? {}; state.text = d.text ?? {}; state.name = d.name ?? ""; state.email = d.email ?? "";
+    state.picks = d.picks ?? {}; state.choices = d.choices ?? {}; state.yesno = d.yesno ?? {}; state.text = d.text ?? {}; state.name = d.name ?? ""; state.email = d.email ?? "";
   } catch (e) { /* storage blocked in this view */ }
 }
 
@@ -543,12 +606,20 @@ function focusFirstInvalidContact() {
   /** @type {HTMLElement} */ (document.getElementById(id)).focus();
 }
 
+/** Choice answers flattened to one line each; they are stored in the "picks" column next to the picture picks. */
+function choicesAsPicks() {
+  /** @type {Record<string, string>} */
+  const flat = {};
+  CHOICE_QUESTIONS.forEach((q) => { flat[q.id] = choiceText(state.choices[q.id]); });
+  return flat;
+}
+
 /** Saves the answers as one new row in the Supabase "submissions" table. */
 async function postSubmission() {
   assertDatabaseConfigured();
   const payload = {
     client_name: state.name.trim(), client_email: state.email.trim(),
-    picks: state.picks, yesno: state.yesno, answers: state.text,
+    picks: { ...state.picks, ...choicesAsPicks() }, yesno: state.yesno, answers: state.text,
   };
   const res = await fetch(`${SUPABASE_URL}/rest/v1/submissions`, {
     method: "POST",
@@ -664,6 +735,15 @@ function bindEvents() {
       scheduleAdvance();
       return;
     }
+    const opt = /** @type {HTMLElement | null} */ (target.closest("[data-cq]"));
+    if (opt) {
+      const q = CHOICE_QUESTIONS.find((c) => c.id === opt.dataset.cq);
+      if (!q) throw new Error(`Unknown choice question "${opt.dataset.cq}"`);
+      const advance = pickChoice(q, opt.dataset.v ?? "");
+      saveDraft(); renderAll(q.label);
+      if (advance) scheduleAdvance();
+      return;
+    }
     const yn = /** @type {HTMLElement | null} */ (target.closest("[data-yn]"));
     if (yn) {
       const q = YES_NO_QUESTIONS.find((s) => s.id === yn.dataset.yn);
@@ -700,7 +780,7 @@ function restoreResetButton() {
 }
 
 function resetAnswers() {
-  state.picks = {}; state.yesno = {}; state.text = {}; state.name = ""; state.email = "";
+  state.picks = {}; state.choices = {}; state.yesno = {}; state.text = {}; state.name = ""; state.email = "";
   attemptedSteps.clear();
   saveDraft(); syncInputs(); renderAll(null); restoreResetButton();
   setStatus("", "");
@@ -708,6 +788,7 @@ function resetAnswers() {
 }
 
 renderStyleSections();
+renderChoiceSections();
 renderSectionNumbers();
 renderYesNo();
 renderTextQuestions();
