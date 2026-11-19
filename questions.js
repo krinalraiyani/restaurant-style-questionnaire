@@ -59,15 +59,6 @@ const YES_NO_QUESTIONS = [
 
 /** @type {TextQuestion[]} */
 const TEXT_QUESTIONS = [
-  { id: "why", label: "Your story", text: "Why are you opening this restaurant? Tell us your story. (We will use it for the About page.)" },
-  { id: "food", label: "Food and drinks", text: "What kind of food and drinks will you serve?" },
-  { id: "address", label: "Address and hours", text: "What is the restaurant address, and what are your opening hours?" },
-  { id: "guests", label: "Who you want to welcome", text: "Who do you want to come to your restaurant? (For example: families, students, office workers)" },
-  { id: "howbook", label: "How guests book", text: "How should guests book a table? (For example: on our website, OpenTable, or by phone)" },
-  { id: "domain", label: "Website address", text: "What website address would you like? (For example: yourplace.com) Do you have one already?" },
-  { id: "launch", label: "Opening and launch date", text: "When does the restaurant open, and when should the website be live?" },
-  { id: "likes", label: "Websites you like", text: "Write the names or links of restaurant websites you like, and what you like about them." },
-  { id: "socials", label: "Phone, email and social media", text: "What phone number, email and social media pages (Instagram, Facebook) should we show on the website?" },
   { id: "searchterms", label: "Local search terms", text: "What local search terms matter most? (For example: \"family restaurant in Clearwater\")" },
   { id: "cuisine", label: "Cuisine and dining style", text: "What cuisine and what style of dining: casual, family, fine dining, or fast-casual?" },
   { id: "founder", label: "Story and founder", text: "What is the story behind \"Everyday-Meal\"? Who is the founder or chef?" },
@@ -76,6 +67,13 @@ const TEXT_QUESTIONS = [
   { id: "competitors", label: "Competitors", text: "Which restaurants do you see as competitors in Clearwater?" },
   { id: "services", label: "Other services", text: "Do you plan other services such as delivery, takeaway, catering, private events, or a bar?" },
   { id: "menu", label: "Menu size and changes", text: "How many menu items are there? Does the menu change daily, weekly or seasonally?" },
+  { id: "why", label: "Your story", text: "Why are you opening this restaurant? Tell us your story. (We will use it for the About page.)" },
+  { id: "food", label: "Food and drinks", text: "What kind of food and drinks will you serve?" },
+  { id: "address", label: "Address and hours", text: "What is the restaurant address, and what are your opening hours?" },
+  { id: "domain", label: "Website address", text: "What website address would you like? (For example: yourplace.com) Do you have one already?" },
+  { id: "launch", label: "Opening and launch date", text: "When does the restaurant open, and when should the website be live?" },
+  { id: "likes", label: "Websites you like", text: "Write the names or links of restaurant websites you like, and what you like about them." },
+  { id: "socials", label: "Phone, email and social media", text: "What phone number, email and social media pages (Instagram, Facebook) should we show on the website?" },
 ];
 
 /** Every answered item as label/value rows, in questionnaire order. */
