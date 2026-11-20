@@ -13,8 +13,8 @@
 const STYLE_QUESTIONS = [
   { id: "page", title: "Sample web page", hint: "Which page feels more like your restaurant?",
     options: [
-      { value: "Simple and clean", note: "Only what matters", image: "images/Q8-1-Simple-and-clean.jpg?v=7", width: 1600, height: 1217 },
-      { value: "Busy and detailed", note: "Lively, lots going on", image: "images/Q8-2-Busy-and-detailed.jpg", width: 1600, height: 1217 } ] },
+      { value: "Simple and clean", note: "Only what matters", image: "images/Q8-1-Simple-and-clean.jpg?v=8", width: 1600, height: 1217 },
+      { value: "Busy and detailed", note: "Lively, lots going on", image: "images/Q8-2-Busy-and-detailed.jpg?v=8", width: 1600, height: 1217 } ] },
 ];
 
 /** @type {ChoiceQuestion[]} */
