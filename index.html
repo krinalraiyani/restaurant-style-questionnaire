@@ -99,7 +99,7 @@ h1 {
 .section-head p { margin: 0; color: var(--muted); font-size: 16px; }
 
 /* ---------- Picture choice pair ---------- */
-.pair { display: grid; grid-template-columns: 1fr; gap: 24px; }
+.pair { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 24px; }
 .choice {
   display: grid; grid-template-rows: 1fr auto;
   background: var(--surface); border: 1px solid var(--line); border-radius: 12px;
